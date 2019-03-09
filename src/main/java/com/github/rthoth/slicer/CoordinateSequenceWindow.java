@@ -2,21 +2,25 @@ package com.github.rthoth.slicer;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.CoordinateSequences;
 import org.locationtech.jts.geom.Envelope;
 
 public abstract class CoordinateSequenceWindow implements CoordinateSequence {
 
+
 	protected final CoordinateSequence underlying;
 	protected final int start;
 	protected final int stop;
+	protected final boolean closed;
 	protected final int size;
 	protected final int limit;
 
-	public CoordinateSequenceWindow(CoordinateSequence underlying, int start, int stop) {
+	public CoordinateSequenceWindow(CoordinateSequence underlying, int start, int stop, boolean closed) {
 		this.underlying = underlying;
 		this.start = start;
 		this.stop = stop;
-		this.limit = underlying.size();
+		this.closed = closed;
+		this.limit = closed ? underlying.size() - 1 : underlying.size();
 		this.size = computeSize();
 	}
 
@@ -36,49 +40,28 @@ public abstract class CoordinateSequenceWindow implements CoordinateSequence {
 		return stop;
 	}
 
+	public boolean isClosed() {
+		return closed;
+	}
+
 	@Override
 	public int getDimension() {
 		return underlying.getDimension();
 	}
 
 	@Override
-	public int getMeasures() {
-		return underlying.getMeasures();
+	public Coordinate getCoordinate(int index) {
+		return underlying.getCoordinate(map(index));
 	}
 
 	@Override
-	public boolean hasZ() {
-		return underlying.hasZ();
-	}
-
-	@Override
-	public boolean hasM() {
-		return underlying.hasM();
-	}
-
-	@Override
-	public Coordinate createCoordinate() {
-		return underlying.createCoordinate();
-	}
-
-	@Override
-	public Coordinate getCoordinate(int i) {
-		return underlying.getCoordinate(map(i));
-	}
-
-	@Override
-	public Coordinate getCoordinateCopy(int i) {
-		return underlying.getCoordinateCopy(map(i));
+	public Coordinate getCoordinateCopy(int index) {
+		return underlying.getCoordinateCopy(map(index));
 	}
 
 	@Override
 	public void getCoordinate(int index, Coordinate coord) {
 		underlying.getCoordinate(map(index), coord);
-	}
-
-	@Override
-	public int size() {
-		return size;
 	}
 
 	@Override
@@ -92,18 +75,13 @@ public abstract class CoordinateSequenceWindow implements CoordinateSequence {
 	}
 
 	@Override
-	public double getZ(int index) {
-		return underlying.getZ(map(index));
-	}
-
-	@Override
-	public double getM(int index) {
-		return underlying.getM(map(index));
-	}
-
-	@Override
 	public double getOrdinate(int index, int ordinateIndex) {
 		return underlying.getOrdinate(map(index), ordinateIndex);
+	}
+
+	@Override
+	public int size() {
+		return size;
 	}
 
 	@Override
@@ -117,69 +95,107 @@ public abstract class CoordinateSequenceWindow implements CoordinateSequence {
 	}
 
 	@Override
-	public CoordinateSequence copy() {
-		return null;
+	public String toString() {
+		return CoordinateSequences.toString(this);
 	}
-
 
 	public static class Forward extends CoordinateSequenceWindow {
 
-		public Forward(CoordinateSequence underlying, int start, int stop) {
-			super(underlying, start, stop);
+		public Forward(CoordinateSequence underlying, int start, int stop, boolean closed) {
+			super(underlying, start, stop, closed);
 		}
 
 		@Override
 		protected int computeSize() {
-			if (start <= stop)
-				return stop - start + 1;
-			else
-				return limit - start + stop;
+			return (start <= stop) ? stop - start + 1 : limit - start + stop + 1;
 		}
 
 		@Override
 		protected int map(int index) {
-			return (start + index) % limit;
+			if (index >= 0 && index < size)
+				return (start + index) % limit;
+			else
+				throw new IndexOutOfBoundsException(String.format("%d is out of bound %d!", index, size));
 		}
 
 		@Override
 		public Coordinate[] toCoordinateArray() {
-			return new Coordinate[0];
+			Coordinate[] ret = new Coordinate[size];
+			for (int i = 0, index = start; i < size; i++, index = (index + 1) % limit) {
+				ret[i] = underlying.getCoordinate(index);
+			}
+
+			return ret;
 		}
 
 		@Override
 		public Envelope expandEnvelope(Envelope env) {
-			return null;
+			int index = start;
+			Envelope ret = new Envelope(env);
+			for (int i = 0; i < size; i++, index = (index + 1) % limit) {
+				ret.expandToInclude(underlying.getX(index), underlying.getY(index));
+			}
+
+			return ret;
+		}
+
+		@Override
+		public CoordinateSequence copy() {
+			return this;
 		}
 	}
 
 	public static class Backward extends CoordinateSequenceWindow {
 
-		public Backward(CoordinateSequence underlying, int start, int stop) {
-			super(underlying, start, stop);
+		public Backward(CoordinateSequence underlying, int start, int stop, boolean closed) {
+			super(underlying, start, stop, closed);
 		}
 
 		@Override
 		protected int computeSize() {
-			if (stop <= start)
-				return start - stop + 1;
-			else
-				return limit - stop + start;
+			return (stop <= start) ? start - stop + 1 : limit - stop + start + 1;
 		}
 
 		@Override
 		protected int map(int index) {
-			index = start - index;
-			return index >= 0 ? index : limit + index;
+			if (index >= 0 && index < size) {
+				index = (start - index) % limit;
+				return (index >= 0) ? index : (limit + index);
+			} else
+				throw new IndexOutOfBoundsException(String.format("%d is out of bound %d", index, size));
 		}
 
 		@Override
 		public Coordinate[] toCoordinateArray() {
+			Coordinate[] ret = new Coordinate[size];
+
+			for (int i = 0, index = start; i < size; i++) {
+				ret[i] = underlying.getCoordinate(index--);
+				if (index < 0) {
+					index = limit + index;
+				}
+			}
+
 			return new Coordinate[0];
 		}
 
 		@Override
 		public Envelope expandEnvelope(Envelope env) {
-			return null;
+			Envelope ret = new Envelope(env);
+
+			for (int i = 0, index = start; i < size; i++) {
+				ret.expandToInclude(underlying.getX(index), underlying.getY(index--));
+				if (index < 0) {
+					index = limit + index;
+				}
+			}
+
+			return ret;
+		}
+
+		@Override
+		public CoordinateSequence copy() {
+			return this;
 		}
 	}
 }
