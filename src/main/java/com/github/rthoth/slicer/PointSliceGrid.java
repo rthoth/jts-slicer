@@ -5,7 +5,7 @@ import org.pcollections.PSequence;
 
 public class PointSliceGrid extends SliceGrid<Point> {
 
-	public PointSliceGrid(Point point, PSequence<Guide.X> x, PSequence<Guide.Y> y, Order order) {
-		super(point, x, y, order);
+	public PointSliceGrid(Point point, PSequence<Guide.X> x, PSequence<Guide.Y> y) {
+		super(point, x, y);
 	}
 }
