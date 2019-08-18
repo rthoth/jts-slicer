@@ -1,12 +1,33 @@
 package com.github.rthoth.slicer;
 
-import org.locationtech.jts.geom.Coordinate;
+public abstract class Cell<G extends Guide<?>> {
 
-public interface Cell {
+	public static class Lower<G extends Guide<?>> extends Cell<G> {
 
-	void begin(Coordinate coordinate);
+		private final G upper;
 
-	void check(Coordinate coordinate, int index);
+		public Lower(G upper) {
+			this.upper = upper;
+		}
+	}
 
-	void end(Coordinate coordinate, int index);
+	public static class Middle<G extends Guide<?>> extends Cell<G> {
+
+		private final G lower;
+		private final G upper;
+
+		public Middle(G lower, G upper) {
+			this.lower = lower;
+			this.upper = upper;
+		}
+	}
+
+	public static class Upper<G extends Guide<?>> extends Cell<G> {
+
+		private final G lower;
+
+		public Upper(G lower) {
+			this.lower = lower;
+		}
+	}
 }

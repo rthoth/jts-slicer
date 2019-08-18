@@ -4,7 +4,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.TopologyException;
 
-public class PolygonCallback implements Grid.TraverseCallback {
+public class PolygonTraverseCallback implements Grid.TraverseCallback {
 
 	enum Orientation {
 		CLOCKWISE, COUNTERCLOCKWISE
@@ -14,7 +14,7 @@ public class PolygonCallback implements Grid.TraverseCallback {
 	private Coordinate last;
 	private double area = 0D;
 
-	public PolygonCallback(CoordinateSequence sequence) {
+	public PolygonTraverseCallback(CoordinateSequence sequence) {
 		this.sequence = sequence;
 	}
 
