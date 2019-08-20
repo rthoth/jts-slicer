@@ -5,7 +5,7 @@ import org.pcollections.PSequence;
 
 public class LineStringSliceGrid extends SliceGrid<LineString> {
 
-	public LineStringSliceGrid(LineString geometry, PSequence<Guide.X> x, PSequence<Guide.Y> y) {
-		super(geometry, x, y);
+	public LineStringSliceGrid(LineString geometry, PSequence<Guide.X> x, PSequence<Guide.Y> y, Order order) {
+		super(geometry, x, y, order);
 	}
 }

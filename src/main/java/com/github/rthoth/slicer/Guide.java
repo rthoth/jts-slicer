@@ -6,8 +6,8 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 
 	protected final double position;
 	protected final double offset;
-	protected final G less;
-	protected final G greater;
+	private final G less;
+	private final G greater;
 
 	public Guide(double position, double offset, double extrusion) {
 		this.position = position + extrusion;
@@ -20,6 +20,14 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 			less = copy(position - extrusion);
 			greater = copy(position + extrusion);
 		}
+	}
+
+	public G getLess() {
+		return less;
+	}
+
+	public G getGreater() {
+		return greater;
 	}
 
 	public abstract G extrude(double extrusion);

@@ -5,8 +5,10 @@ import org.pcollections.PSequence;
 
 public class PolygonSliceGrid extends SliceGrid<Polygon> {
 
-	public PolygonSliceGrid(Polygon polygon, PSequence<Guide.X> x, PSequence<Guide.Y> y) {
-		super(polygon, x, y);
-		PolygonTraverseCallback callback = new PolygonTraverseCallback(polygon.getExteriorRing().getCoordinateSequence());
+	public PolygonSliceGrid(Polygon polygon, PSequence<Guide.X> x, PSequence<Guide.Y> y, Order order) {
+		super(polygon, x, y, order);
+		PolygonCallback callback = new PolygonCallback(polygon.getExteriorRing().getCoordinateSequence());
+
+		grid.traverse(polygon.getExteriorRing().getCoordinateSequence(), callback);
 	}
 }

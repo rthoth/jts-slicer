@@ -37,14 +37,18 @@ public class Slicer {
 	}
 
 	public <T extends Geometry> SliceGrid<T> apply(T geometry) {
+		return apply(geometry, Order.X_Y);
+	}
+
+	public <T extends Geometry> SliceGrid<T> apply(T geometry, Order order) {
 		if (geometry instanceof Point) {
-			return (SliceGrid<T>) new PointSliceGrid((Point) geometry, x, y);
+			return (SliceGrid<T>) new PointSliceGrid((Point) geometry, x, y, order);
 
 		} else if (geometry instanceof Polygon) {
-			return (SliceGrid<T>) new PolygonSliceGrid((Polygon) geometry, x, y);
+			return (SliceGrid<T>) new PolygonSliceGrid((Polygon) geometry, x, y, order);
 
 		} else if (geometry instanceof LineString) {
-			return (SliceGrid<T>) new LineStringSliceGrid((LineString) geometry, x, y);
+			return (SliceGrid<T>) new LineStringSliceGrid((LineString) geometry, x, y, order);
 
 		} else {
 			throw new IllegalArgumentException();

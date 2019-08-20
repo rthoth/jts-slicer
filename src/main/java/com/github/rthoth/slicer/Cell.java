@@ -29,5 +29,7 @@ public abstract class Cell<G extends Guide<?>> {
 		public Upper(G lower) {
 			this.lower = lower;
 		}
+
+
 	}
 }
