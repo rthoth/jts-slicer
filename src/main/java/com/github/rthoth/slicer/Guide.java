@@ -34,6 +34,8 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 
 	protected abstract G copy(double position);
 
+	public abstract Coordinate intersection(Coordinate a, Coordinate b);
+
 	public static class X extends Guide<X> {
 
 		public X(double x, double offset, double extrusion) {

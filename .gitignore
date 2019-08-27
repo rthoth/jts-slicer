@@ -11,3 +11,9 @@ out/
 *.iml
 
 .attach_pid*
+
+.classpath
+.project
+.settings/
+.vscode/
+bin/

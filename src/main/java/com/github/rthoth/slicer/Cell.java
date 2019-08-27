@@ -1,6 +1,10 @@
 package com.github.rthoth.slicer;
 
+import org.locationtech.jts.geom.Coordinate;
+
 public abstract class Cell<G extends Guide<?>> {
+
+	public abstract int position(Coordinate coordinate);
 
 	public static class Lower<G extends Guide<?>> extends Cell<G> {
 
@@ -8,6 +12,18 @@ public abstract class Cell<G extends Guide<?>> {
 
 		public Lower(G upper) {
 			this.upper = upper;
+		}
+
+		@Override
+		public int position(Coordinate coordinate) {
+			switch (upper.compareTo(coordinate)) {
+				case 1:
+					return 0;
+				case 0:
+					return 1;
+				default:
+					return 2;
+			}
 		}
 	}
 
@@ -20,6 +36,25 @@ public abstract class Cell<G extends Guide<?>> {
 			this.lower = lower;
 			this.upper = upper;
 		}
+
+		@Override
+		public int position(Coordinate coordinate) {
+			switch (lower.compareTo(coordinate)) {
+				case 1:
+					return -2;
+				case 0:
+					return -1;
+			}
+
+			switch (upper.compareTo(coordinate)) {
+				case -1:
+					return 2;
+				case 0:
+					return 1;
+			}
+
+			return 0;
+		}
 	}
 
 	public static class Upper<G extends Guide<?>> extends Cell<G> {
@@ -30,6 +65,9 @@ public abstract class Cell<G extends Guide<?>> {
 			this.lower = lower;
 		}
 
-
+		@Override
+		public int position(Coordinate coordinate) {
+			return lower.compareTo(coordinate);
+		}
 	}
 }

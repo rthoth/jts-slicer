@@ -4,18 +4,14 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.pcollections.Empty;
 import org.pcollections.PSequence;
-import org.pcollections.PStack;
 import org.pcollections.PVector;
 
 import static com.github.rthoth.slicer.Util.toVector;
 
 public class Grid {
 
-	private final PVector<Cell<Guide.X>> xAxis;
-	private final PVector<Cell<Guide.Y>> yAxix;
-	private final Order order;
-
 	public interface Callback<I> {
+
 		void check(Coordinate coordinate, int i);
 
 		void first(Coordinate coordinate);
@@ -24,8 +20,13 @@ public class Grid {
 	}
 
 	public interface Cropper<I> {
-		PVector<CoordinateSequence> crop(PStack<Event> events);
+
+		PSequence<Event> crop(PSequence<Event> events, CoordinateSequence sequence, I info);
 	}
+
+	private final PVector<Cell<Guide.X>> xAxis;
+	private final PVector<Cell<Guide.Y>> yAxis;
+	private final Order order;
 
 	public Grid(PSequence<Guide.X> x, PSequence<Guide.Y> y, Order order) {
 		this.order = order;
@@ -53,78 +54,67 @@ public class Grid {
 		}
 
 		this.xAxis = xAxis;
-		this.yAxix = yAxis;
+		this.yAxis = yAxis;
 	}
 
-	public <I> void traverse(CoordinateSequence sequence, Callback<I> callback) {
+	public <I> void traverse(CoordinateSequence sequence, Callback<I> callback, Cropper<I> cropper) {
 		switch (order) {
 			case X_Y:
-				traverse(xAxis, yAxix, sequence, callback);
+				traverse(xAxis, yAxis, sequence, callback, cropper);
+				break;
 			case Y_X:
-				traverse(yAxix, xAxis, sequence, callback);
+				traverse(yAxis, xAxis, sequence, callback, cropper);
+				break;
+			case AUTOMATIC:
+				if (xAxis.size() > yAxis.size())
+					traverse(xAxis, yAxis, sequence, callback, cropper);
+				else
+					traverse(yAxis, xAxis, sequence, callback, cropper);
 		}
 	}
 
-	private <I> void traverse(PVector<? extends Cell<?>> _1, PVector<? extends Cell<?>> _2,
-														CoordinateSequence sequence, Callback<I> callback) {
-		if (sequence.size() > 0) {
-			step1(_1, sequence, callback);
-
+	private <I> void traverse(PSequence<? extends Cell<?>> _1, PSequence<? extends Cell<?>> _2,
+														CoordinateSequence sequence, Callback<I> callback, Cropper<I> cropper) {
+		if (sequence.size() > 1) {
+			Step1Result<I> result1 = step1(_1, sequence, callback, cropper);
+		} else if (sequence.size() == 1) {
 		} else {
-
 		}
 	}
 
-	private <I> void step1(PVector<? extends Cell<?>> cells,
-												 CoordinateSequence sequence, Callback<I> callback) {
+	private <I> Step1Result<I> step1(PSequence<? extends Cell<?>> cells,
+																	 CoordinateSequence sequence, Callback<I> callback, Cropper<I> cropper) {
 
-		PVector<GridCell> gridCells = toVector(cells.stream().map(GridCell::new));
+		PVector<GridCell> gridCells = cells.stream()
+			.map(c -> new GridCell(sequence, c)).collect(toVector());
 
 		Coordinate first = sequence.getCoordinate(0);
 		callback.first(first);
-		for (GridCell cell : gridCells)
-			cell.first(first);
 
-		int lastIndex = sequence.size() - 1;
+		for (GridCell gridCell : gridCells)
+			gridCell.first(first, 0);
 
+		final int lastIndex = sequence.size() - 1;
 		for (int i = 1; i < lastIndex; i++) {
-			Coordinate coordinate = sequence.getCoordinate(i);
+			final Coordinate coordinate = sequence.getCoordinate(i);
 			callback.check(coordinate, i);
-			for (GridCell cell : gridCells)
-				cell.check(coordinate, i);
+			for (GridCell gridCell : gridCells)
+				gridCell.check(coordinate, i);
 		}
 
-		Coordinate last = sequence.getCoordinate(lastIndex);
+		final Coordinate last = sequence.getCoordinate(lastIndex);
 		I info = callback.last(last, lastIndex);
+		PVector<PSequence<Event>> events = gridCells.stream()
+			.map(gridCell -> cropper.crop(gridCell.last(last, lastIndex), sequence, info))
+			.collect(toVector());
 
-		PVector<IntersectionSet> sequences = toVector(gridCells.stream()
-			.map(g -> g.last(last, lastIndex)));
-
-		return T2.of(info, toVector(gridCells.stream().map(x -> x.events)));
+		return new Step1Result<>(info, events);
 	}
 
-	public static class GridCell {
+	public static class Step1Result<I> extends T2<I, PSequence<PSequence<Event>>> {
 
-		private final Cell<?> cell;
-		private PVector<Event> events = Empty.vector();
-
-		public GridCell(Cell<?> cell) {
-			this.cell = cell;
+		public Step1Result(I _1, PSequence<PSequence<Event>> _2) {
+			super(_1, _2);
 		}
-
-		public void first(Coordinate coordinate) {
-
-		}
-
-		public void check(Coordinate coordinate, int i) {
-
-		}
-
-		public PStack<Event> last(Coordinate coordinate, int i) {
-
-		}
-	}
-
-	public static class Event {
 	}
 }

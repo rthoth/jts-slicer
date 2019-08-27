@@ -8,6 +8,8 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.pcollections.PSequence;
 
+import java.util.stream.Collectors;
+
 import static com.github.rthoth.slicer.Util.toSequence;
 import static com.github.rthoth.slicer.Util.toVector;
 
@@ -33,7 +35,10 @@ public class Slicer {
 
 	@SuppressWarnings("unused")
 	public Slicer extrude(double extrusion) {
-		return new Slicer(toVector(x.stream().map(x -> x.extrude(extrusion))), toVector(y.stream().map(y -> y.extrude(extrusion))));
+		return new Slicer(
+			x.stream().map(x -> x.extrude(extrusion)).collect(toVector()),
+			y.stream().map(y -> y.extrude(extrusion)).collect(toVector())
+		);
 	}
 
 	public <T extends Geometry> SliceGrid<T> apply(T geometry) {
