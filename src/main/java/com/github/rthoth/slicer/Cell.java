@@ -6,6 +6,8 @@ public abstract class Cell<G extends Guide<?>> {
 
 	public abstract int position(Coordinate coordinate);
 
+	public abstract Coordinate intersection(Coordinate _1, Coordinate _2);
+
 	public static class Lower<G extends Guide<?>> extends Cell<G> {
 
 		private final G upper;
