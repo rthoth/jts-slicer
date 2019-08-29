@@ -71,14 +71,10 @@ public class GridCell {
 				} else if (location == OUTSIDE) {
 					events.addLast(newEvent(index, cell.intersection(lastCoordinate, coordinate), position, OUTSIDE));
 				} else if (lastLocation == BORDER) {
-					if (last != null) {
-						if (last.getLocation() == INSIDE)
-							events.removeLast();
-					}
-					events.addLast(newEvent(index, ));
+					if (last != null && last.getLocation())
+				} else {
+
 				}
-
-
 		}
 	}
 
