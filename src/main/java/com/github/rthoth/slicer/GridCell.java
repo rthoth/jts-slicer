@@ -6,23 +6,21 @@ import org.pcollections.PSequence;
 
 import java.util.LinkedList;
 
-import static com.github.rthoth.slicer.Location.*;
-
 public class GridCell {
 
 
-	private final CoordinateSequence sequence;
 	private final Cell<?> cell;
 
 	private final LinkedList<Event> events = new LinkedList<>();
+	private final Event.Factory eventFactory;
 	private int lastPosition;
 	private Coordinate lastCoordinate;
 	private Location firstLocation;
 	private int lastIndex;
 	private Location lastLocation;
 
-	public GridCell(CoordinateSequence sequence, Cell<?> cell) {
-		this.sequence = sequence;
+	public GridCell(Event.Factory eventFactory, Cell<?> cell) {
+		this.eventFactory = eventFactory;
 		this.cell = cell;
 	}
 
@@ -55,31 +53,9 @@ public class GridCell {
 		final Event last = events.peekLast();
 
 		switch (product) {
-			case 2: // same side: outside -> border or border -> outside
-				if (location == OUTSIDE) {
-					if (last != null && last.getLocation() == INSIDE) {
-						events.removeLast();
-					}
-				} else {
-					events.addLast(newEvent(index, null, position, INSIDE));
-				}
-				break;
+			case 2: // same side: outside -> border, border -> outside
 
-			case 0: // border -> inside or outside -> inside or inside -> border or inside -> outside
-				if (lastLocation == OUTSIDE) {
-					events.addLast(newEvent(index, cell.intersection(lastCoordinate, coordinate), lastPosition, INSIDE));
-				} else if (location == OUTSIDE) {
-					events.addLast(newEvent(index, cell.intersection(lastCoordinate, coordinate), position, OUTSIDE));
-				} else if (lastLocation == BORDER) {
-					if (last != null && last.getLocation())
-				} else {
-
-				}
 		}
-	}
-
-	private Event newEvent(int index, Coordinate coordinate, int position, Location location) {
-		return new Event(sequence, index, coordinate, position, location);
 	}
 
 	public PSequence<Event> last(Coordinate coordinate, int index) {

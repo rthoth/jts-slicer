@@ -85,8 +85,10 @@ public class Grid {
 	private <I> Step1Result<I> step1(PSequence<? extends Cell<?>> cells,
 																	 CoordinateSequence sequence, Callback<I> callback, Cropper<I> cropper) {
 
+		Event.Factory eventFactory = new Event.Factory(sequence);
+
 		PVector<GridCell> gridCells = cells.stream()
-			.map(c -> new GridCell(sequence, c)).collect(toVector());
+			.map(c -> new GridCell(eventFactory, c)).collect(toVector());
 
 		Coordinate first = sequence.getCoordinate(0);
 		callback.first(first);
