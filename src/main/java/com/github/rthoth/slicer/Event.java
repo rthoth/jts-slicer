@@ -7,14 +7,22 @@ public abstract class Event {
 
 	private final CoordinateSequence sequence;
 	private final int index;
-	private final Coordinate coordinate;
 	private final int position;
+	private final Location location;
 
-	public Event(CoordinateSequence sequence, int index, Coordinate coordinate, int position) {
+	public Event(CoordinateSequence sequence, int index, int position) {
 		this.sequence = sequence;
 		this.index = index;
-		this.coordinate = coordinate;
 		this.position = position;
+		this.location = Location.of(position);
+	}
+
+	public Location getLocation() {
+		return location;
+	}
+
+	public int getIndex() {
+		return index;
 	}
 
 	public static class Factory {
@@ -33,29 +41,28 @@ public abstract class Event {
 			return new Out(sequence, index, coordinate, position);
 		}
 
-		public CrossStop newCrossStop(int index, Coordinate coordinate, int position) {
-			return new CrossStop(sequence, index, coordinate, position);
+		public Coordinate getCoordinate(int index) {
+			return sequence.getCoordinate(index);
 		}
 	}
 
 	public static class In extends Event {
 
+		private final Coordinate coordinate;
+
 		public In(CoordinateSequence sequence, int index, Coordinate coordinate, int position) {
-			super(sequence, index, coordinate, position);
+			super(sequence, index, position);
+			this.coordinate = coordinate;
 		}
 	}
 
 	public static class Out extends Event {
 
+		private final Coordinate coordinate;
+
 		public Out(CoordinateSequence sequence, int index, Coordinate coordinate, int position) {
-			super(sequence, index, coordinate, position);
-		}
-	}
-
-	public static class CrossStop extends Event {
-
-		public CrossStop(CoordinateSequence sequence, int index, Coordinate coordinate, int position) {
-			super(sequence, index, coordinate, position);
+			super(sequence, index, position);
+			this.coordinate = coordinate;
 		}
 	}
 }

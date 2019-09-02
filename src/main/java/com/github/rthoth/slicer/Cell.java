@@ -6,8 +6,6 @@ public abstract class Cell<G extends Guide<?>> {
 
 	public abstract int position(Coordinate coordinate);
 
-	public abstract Coordinate intersection(Coordinate _1, Coordinate _2);
-
 	public abstract Coordinate intersection(Coordinate _1, Coordinate _2, int guide);
 
 	public static class Lower<G extends Guide<?>> extends Cell<G> {
@@ -28,6 +26,14 @@ public abstract class Cell<G extends Guide<?>> {
 				default:
 					return 2;
 			}
+		}
+
+		@Override
+		public Coordinate intersection(Coordinate _1, Coordinate _2, int guide) {
+			if (guide > 0)
+				return upper.intersection(_1, _2);
+			else
+				throw new IllegalArgumentException();
 		}
 	}
 
@@ -59,6 +65,16 @@ public abstract class Cell<G extends Guide<?>> {
 
 			return 0;
 		}
+
+		@Override
+		public Coordinate intersection(Coordinate _1, Coordinate _2, int guide) {
+			if (guide < 0)
+				return lower.intersection(_1, _2);
+			else if (guide > 0)
+				return upper.intersection(_1, _2);
+
+			throw new IllegalArgumentException(String.valueOf(guide));
+		}
 	}
 
 	public static class Upper<G extends Guide<?>> extends Cell<G> {
@@ -72,6 +88,14 @@ public abstract class Cell<G extends Guide<?>> {
 		@Override
 		public int position(Coordinate coordinate) {
 			return lower.compareTo(coordinate);
+		}
+
+		@Override
+		public Coordinate intersection(Coordinate _1, Coordinate _2, int guide) {
+			if (guide < 0)
+				return lower.intersection(_1, _2);
+			else
+				throw new IllegalArgumentException(String.valueOf(guide));
 		}
 	}
 }

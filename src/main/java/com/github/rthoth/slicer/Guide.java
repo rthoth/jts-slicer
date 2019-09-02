@@ -1,6 +1,7 @@
 package com.github.rthoth.slicer;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateXY;
 
 public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 
@@ -56,6 +57,15 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 		public int compareTo(Coordinate coordinate) {
 			return Math.abs(coordinate.getX() - position) > offset ? Double.compare(position, coordinate.getX()) : 0;
 		}
+
+		@Override
+		public Coordinate intersection(Coordinate a, Coordinate b) {
+			final double dx = b.getX() - a.getX();
+			if (dx != 0) {
+				return new CoordinateXY(position, a.getY() + (position - a.getX()) * (b.getY() - a.getY()) / dx);
+			} else
+				throw new IllegalArgumentException();
+		}
 	}
 
 	public static class Y extends Guide<Y> {
@@ -77,6 +87,15 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 		@Override
 		public int compareTo(Coordinate coordinate) {
 			return Math.abs(coordinate.getY() - position) > offset ? Double.compare(position, coordinate.getY()) : 0;
+		}
+
+		@Override
+		public Coordinate intersection(Coordinate a, Coordinate b) {
+			final double dy = b.getY() - a.getY();
+			if (dy != 0)
+				return new CoordinateXY(a.getX() + ((position - a.getY()) * (b.getX() - a.getX())) / dy, position);
+			else
+				throw new IllegalArgumentException();
 		}
 	}
 }

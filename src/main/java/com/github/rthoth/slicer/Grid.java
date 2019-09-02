@@ -66,7 +66,7 @@ public class Grid {
 				traverse(yAxis, xAxis, sequence, callback, cropper);
 				break;
 			case AUTOMATIC:
-				if (xAxis.size() > yAxis.size())
+				if (xAxis.size() >= yAxis.size())
 					traverse(xAxis, yAxis, sequence, callback, cropper);
 				else
 					traverse(yAxis, xAxis, sequence, callback, cropper);

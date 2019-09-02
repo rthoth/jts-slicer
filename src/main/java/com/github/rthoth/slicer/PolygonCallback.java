@@ -4,7 +4,12 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.TopologyException;
 
+import static com.github.rthoth.slicer.PolygonCallback.Orientation.CLOCKWISE;
+import static com.github.rthoth.slicer.PolygonCallback.Orientation.COUNTERCLOCKWISE;
+
 public class PolygonCallback implements Grid.Callback<PolygonCallback.Orientation> {
+
+	private Coordinate lastCoordinate;
 
 	enum Orientation {
 		CLOCKWISE, COUNTERCLOCKWISE
@@ -15,17 +20,19 @@ public class PolygonCallback implements Grid.Callback<PolygonCallback.Orientatio
 
 	@Override
 	public void check(Coordinate coordinate, int i) {
-
+		area += lastCoordinate.getX() * coordinate.getY() - lastCoordinate.getY() * coordinate.getX();
+		lastCoordinate = coordinate;
 	}
 
 	@Override
 	public void first(Coordinate coordinate) {
-
+		lastCoordinate = coordinate;
 	}
 
 	@Override
 	public Orientation last(Coordinate coordinate, int i) {
-		return null;
+		check(coordinate, i);
+		return area > 0D ? COUNTERCLOCKWISE : CLOCKWISE;
 	}
 //	@Override
 //	public void first(Coordinate coordinate, int index) {

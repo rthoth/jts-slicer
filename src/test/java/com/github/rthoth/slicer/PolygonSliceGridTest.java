@@ -1,14 +1,24 @@
 package com.github.rthoth.slicer;
 
 import org.junit.jupiter.api.Test;
+import org.pcollections.PVector;
+
+import java.util.stream.DoubleStream;
+
+import static com.github.rthoth.slicer.Util.toVector;
 
 public class PolygonSliceGridTest extends AbstractTest {
 
-	public static final String POLYGON_01 = "POLYGON ((2 -8, 2 -2, 8 7, 4 8, -3 3, -5 1, 2 -8), (4 4, 1 -1, -2 2, 4 4))";
+	public static final String POLYGON_01 = "POLYGON ((6 14, 4 14, 2 12, 5 12, 5 10, 8 10, 6 8, 6 6, 8 4, 6 4, 4 4, 5 6, 3 6, 1 2, 1 16, 4 16, 6 14))";
 
 	@Test
-	public void matrix_6x5() {
-		Slicer slicer = new Slicer(new double[]{-4, -1, 2, 4, 6}, new double[]{-6, -2, 2, 6});
-		slicer.apply(GeometryHelper.geometryOf(POLYGON_01));
+	public void matrix_3x3() {
+
+		PVector<Guide.X> x = DoubleStream.of(4, 6).mapToObj(d -> new Guide.X(d, 1e-8, 0))
+			.collect(toVector());
+		PVector<Guide.Y> y = DoubleStream.of(4, 14).mapToObj(d -> new Guide.Y(d, 1e-8, 0))
+			.collect(toVector());
+
+		PolygonSliceGrid grid = new PolygonSliceGrid(GeometryHelper.geometryOf(POLYGON_01), x, y, Order.X_Y);
 	}
 }

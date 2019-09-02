@@ -42,7 +42,7 @@ public class Slicer {
 	}
 
 	public <T extends Geometry> SliceGrid<T> apply(T geometry) {
-		return apply(geometry, Order.X_Y);
+		return apply(geometry, Order.AUTOMATIC);
 	}
 
 	public <T extends Geometry> SliceGrid<T> apply(T geometry, Order order) {
