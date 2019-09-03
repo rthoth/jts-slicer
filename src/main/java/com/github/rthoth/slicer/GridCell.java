@@ -41,17 +41,16 @@ public class GridCell {
 		final Location currentLocation = Location.of(currentPosition);
 
 		if (currentPosition != lastPosition) {
-
-			if (firstLocation == Location.BORDER && currentLocation != Location.BORDER) {
+			if (firstLocation == Location.BORDER && currentLocation != Location.BORDER)
 				firstLocation = currentLocation;
-			}
 
 			check(coordinate, index, currentPosition, currentLocation);
 			lastPosition = currentPosition;
 			lastLocation = currentLocation;
-			lastCoordinate = coordinate;
 			lastIndex = index;
 		}
+
+		lastCoordinate = coordinate;
 	}
 
 	private void check(Coordinate coordinate, int index, int position, Location location) {
@@ -73,29 +72,46 @@ public class GridCell {
 					events.addLast(evtFactory.newIn(index, cell.intersection(lastCoordinate, coordinate, lastPosition), position));
 				} else if (location == OUTSIDE) {
 					events.addLast(evtFactory.newOut(index, cell.intersection(lastCoordinate, coordinate, position), position));
-				} else if (lastLocation == BORDER) {
-					if (last == null || lastIndex != index - 1) {
-						events.addLast(evtFactory.newIn(index, getCoordinate(index - 1), position));
-					} else if (lastIndex == index - 1) {
-						events.removeLast();
-					}
+				} else if (lastLocation == BORDER) { // border -> inside
+//					if ((last instanceof Event.Out) && last.getIndex() == index - 1) {
+//						events.removeLast();
+//					} else {
+//						if (last instanceof Event.Out) {
+//							events.removeLast();
+//							events.addLast(evtFactory.newOut(last.getIndex() + 1, last.getCoordinate(), lastPosition));
+//						}
+//						events.addLast(evtFactory.newIn(index, lastCoordinate, lastPosition));
+//					}
 
+					if (last instanceof Event.Out) {
+						
+					} else {
+						events.addLast(evtFactory.newIn(index, lastCoordinate, lastPosition));
+					}
 				} else {
 					events.addLast(evtFactory.newOut(index, null, position));
 				}
 				break;
 
-			case -1: // border->border
-				if (last != null && last.getIndex() == index - 1)
+			case -1: // border->border is like a in->out
+				if ((last instanceof Event.Out) && last.getIndex() == index - 1)
 					events.removeLast();
+				else
+					events.addLast(evtFactory.newIn(index, lastCoordinate, lastPosition));
 
 				events.addLast(evtFactory.newOut(index, null, position));
-				break;
-		}
-	}
 
-	private Coordinate getCoordinate(int index) {
-		return evtFactory.getCoordinate(index);
+
+				break;
+
+			case 2: // border->outside, outside->border
+				if (location == OUTSIDE) {
+					if (last instanceof Event.Out) {
+
+					}
+				}
+
+		}
 	}
 
 	public PSequence<Event> last(Coordinate coordinate, int index) {
