@@ -53,14 +53,14 @@ public class Position {
 	}
 
 	public static <G extends Guide<?>> int between(Coordinate coordinate, Guide<G> min, Guide<G> max) {
-		switch (min.compareTo(coordinate)) {
+		switch (min.positionOf(coordinate)) {
 			case 1:
 				return -2;
 			case 0:
 				return -1;
 		}
 
-		switch (max.compareTo(coordinate)) {
+		switch (max.positionOf(coordinate)) {
 			case -1:
 				return 2;
 			case 0:
@@ -71,7 +71,7 @@ public class Position {
 	}
 
 	public static int greater(Coordinate coordinate, Guide<?> max) {
-		switch (max.compareTo(coordinate)) {
+		switch (max.positionOf(coordinate)) {
 			case -1:
 				return 0;
 			case 1:
@@ -82,7 +82,7 @@ public class Position {
 	}
 
 	public static int less(Coordinate coordinate, Guide<?> min) {
-		switch (min.compareTo(coordinate)) {
+		switch (min.positionOf(coordinate)) {
 			case 1:
 				return 0;
 			case -1:

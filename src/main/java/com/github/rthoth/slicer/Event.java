@@ -5,10 +5,10 @@ import org.locationtech.jts.geom.CoordinateSequence;
 
 public abstract class Event {
 
-	private final CoordinateSequence sequence;
-	private final int index;
-	private final int position;
-	private final Location location;
+	protected final CoordinateSequence sequence;
+	protected final int index;
+	protected final int position;
+	protected final Location location;
 
 	public Event(CoordinateSequence sequence, int index, int position) {
 		this.sequence = sequence;
@@ -24,6 +24,10 @@ public abstract class Event {
 	public int getIndex() {
 		return index;
 	}
+
+	public abstract Coordinate getCoordinate();
+
+	public abstract String toString();
 
 	public static class Factory {
 
@@ -54,6 +58,16 @@ public abstract class Event {
 			super(sequence, index, position);
 			this.coordinate = coordinate;
 		}
+
+		@Override
+		public Coordinate getCoordinate() {
+			return coordinate != null ? coordinate : sequence.getCoordinate(index);
+		}
+
+		@Override
+		public String toString() {
+			return "In(" + index + ", " + getCoordinate() + ")";
+		}
 	}
 
 	public static class Out extends Event {
@@ -63,6 +77,16 @@ public abstract class Event {
 		public Out(CoordinateSequence sequence, int index, Coordinate coordinate, int position) {
 			super(sequence, index, position);
 			this.coordinate = coordinate;
+		}
+
+		@Override
+		public Coordinate getCoordinate() {
+			return coordinate != null ? coordinate : sequence.getCoordinate(index);
+		}
+
+		@Override
+		public String toString() {
+			return "Out(" + index + ", " + getCoordinate() + ")";
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package com.github.rthoth.slicer;
 
 import org.locationtech.jts.geom.Coordinate;
-import org.pcollections.Empty;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
@@ -32,13 +31,13 @@ public class GridCell {
 
 		lastCoordinate = coordinate;
 		lastIndex = index;
-		lastPosition = cell.position(coordinate);
+		lastPosition = cell.positionOf(coordinate);
 		firstLocation = Location.of(lastPosition);
 		lastLocation = firstLocation;
 	}
 
 	public void check(Coordinate coordinate, int index) {
-		final int currentPosition = cell.position(coordinate);
+		final int currentPosition = cell.positionOf(coordinate);
 		final Location currentLocation = Location.of(currentPosition);
 
 		if (currentPosition != lastPosition) {
@@ -76,7 +75,7 @@ public class GridCell {
 					events.addLast(evtFactory.newOut(index, cell.intersection(lastCoordinate, coordinate, position), position));
 				} else if (lastLocation == BORDER) {
 					if (last == null || lastIndex != index - 1) {
-						events.addLast(evtFactory.newOut(index, getCoordinate(index - 1), position));
+						events.addLast(evtFactory.newIn(index, getCoordinate(index - 1), position));
 					} else if (lastIndex == index - 1) {
 						events.removeLast();
 					}
@@ -87,7 +86,7 @@ public class GridCell {
 				break;
 
 			case -1: // border->border
-				if (last != null && lastIndex == index - 1)
+				if (last != null && last.getIndex() == index - 1)
 					events.removeLast();
 
 				events.addLast(evtFactory.newOut(index, null, position));

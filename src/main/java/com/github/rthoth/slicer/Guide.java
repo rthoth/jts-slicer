@@ -3,7 +3,7 @@ package com.github.rthoth.slicer;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateXY;
 
-public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
+public abstract class Guide<G extends Guide> {
 
 	protected final double position;
 	protected final double offset;
@@ -37,6 +37,10 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 
 	public abstract Coordinate intersection(Coordinate a, Coordinate b);
 
+	public abstract int positionOf(Coordinate coordinate);
+
+	public abstract String toString();
+
 	public static class X extends Guide<X> {
 
 		public X(double x, double offset, double extrusion) {
@@ -54,8 +58,8 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 		}
 
 		@Override
-		public int compareTo(Coordinate coordinate) {
-			return Math.abs(coordinate.getX() - position) > offset ? Double.compare(position, coordinate.getX()) : 0;
+		public int positionOf(Coordinate coordinate) {
+			return Math.abs(coordinate.getX() - position) > offset ? Double.compare(coordinate.getX(), position) : 0;
 		}
 
 		@Override
@@ -65,6 +69,11 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 				return new CoordinateXY(position, a.getY() + (position - a.getX()) * (b.getY() - a.getY()) / dx);
 			} else
 				throw new IllegalArgumentException();
+		}
+
+		@Override
+		public String toString() {
+			return "X(" + position + ")";
 		}
 	}
 
@@ -85,8 +94,8 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 		}
 
 		@Override
-		public int compareTo(Coordinate coordinate) {
-			return Math.abs(coordinate.getY() - position) > offset ? Double.compare(position, coordinate.getY()) : 0;
+		public int positionOf(Coordinate coordinate) {
+			return Math.abs(coordinate.getY() - position) > offset ? Double.compare(coordinate.getY(), position) : 0;
 		}
 
 		@Override
@@ -96,6 +105,11 @@ public abstract class Guide<G extends Guide> implements Comparable<Coordinate> {
 				return new CoordinateXY(a.getX() + ((position - a.getY()) * (b.getX() - a.getX())) / dy, position);
 			else
 				throw new IllegalArgumentException();
+		}
+
+		@Override
+		public String toString() {
+			return "Y(" + position + ")";
 		}
 	}
 }

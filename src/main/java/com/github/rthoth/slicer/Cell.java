@@ -4,7 +4,7 @@ import org.locationtech.jts.geom.Coordinate;
 
 public abstract class Cell<G extends Guide<?>> {
 
-	public abstract int position(Coordinate coordinate);
+	public abstract int positionOf(Coordinate coordinate);
 
 	public abstract Coordinate intersection(Coordinate _1, Coordinate _2, int guide);
 
@@ -17,14 +17,14 @@ public abstract class Cell<G extends Guide<?>> {
 		}
 
 		@Override
-		public int position(Coordinate coordinate) {
-			switch (upper.compareTo(coordinate)) {
+		public int positionOf(Coordinate coordinate) {
+			switch (upper.positionOf(coordinate)) {
 				case 1:
-					return 0;
-				case 0:
-					return 1;
-				default:
 					return 2;
+				case -1:
+					return 0;
+				default:
+					return 1;
 			}
 		}
 
@@ -48,16 +48,16 @@ public abstract class Cell<G extends Guide<?>> {
 		}
 
 		@Override
-		public int position(Coordinate coordinate) {
-			switch (lower.compareTo(coordinate)) {
-				case 1:
+		public int positionOf(Coordinate coordinate) {
+			switch (lower.positionOf(coordinate)) {
+				case -1:
 					return -2;
 				case 0:
 					return -1;
 			}
 
-			switch (upper.compareTo(coordinate)) {
-				case -1:
+			switch (upper.positionOf(coordinate)) {
+				case 1:
 					return 2;
 				case 0:
 					return 1;
@@ -86,8 +86,17 @@ public abstract class Cell<G extends Guide<?>> {
 		}
 
 		@Override
-		public int position(Coordinate coordinate) {
-			return lower.compareTo(coordinate);
+		public int positionOf(Coordinate coordinate) {
+			switch (lower.positionOf(coordinate)) {
+				case -1:
+					return -2;
+
+				case 1:
+					return 0;
+
+				default:
+					return -1;
+			}
 		}
 
 		@Override
