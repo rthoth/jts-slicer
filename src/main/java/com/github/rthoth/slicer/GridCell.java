@@ -73,18 +73,12 @@ public class GridCell {
 				} else if (location == OUTSIDE) {
 					events.addLast(evtFactory.newOut(index, cell.intersection(lastCoordinate, coordinate, position), position));
 				} else if (lastLocation == BORDER) { // border -> inside
-//					if ((last instanceof Event.Out) && last.getIndex() == index - 1) {
-//						events.removeLast();
-//					} else {
-//						if (last instanceof Event.Out) {
-//							events.removeLast();
-//							events.addLast(evtFactory.newOut(last.getIndex() + 1, last.getCoordinate(), lastPosition));
-//						}
-//						events.addLast(evtFactory.newIn(index, lastCoordinate, lastPosition));
-//					}
-
 					if (last instanceof Event.Out) {
-						
+						events.removeLast();
+						if (last.getIndex() != index - 1) {
+							events.addLast(evtFactory.newOut(last.getIndex() + 1, last.getCoordinate(), lastPosition));
+							events.addLast(evtFactory.newIn(index, lastCoordinate, position));
+						}
 					} else {
 						events.addLast(evtFactory.newIn(index, lastCoordinate, lastPosition));
 					}
@@ -106,8 +100,9 @@ public class GridCell {
 
 			case 2: // border->outside, outside->border
 				if (location == OUTSIDE) {
-					if (last instanceof Event.Out) {
-
+					if ((last instanceof Event.Out) && last.getLocation() == BORDER) {
+						events.removeLast();
+						events.addLast(evtFactory.newOut(last.getIndex() + 1, last.getCoordinate(), lastPosition));
 					}
 				}
 

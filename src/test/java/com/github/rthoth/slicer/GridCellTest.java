@@ -57,7 +57,7 @@ public class GridCellTest {
 		assertThat(events)
 			.containsOnly(
 				"In(1, (6.0, 14.0))",
-				"Out(1, (4.0, 14.0))",
+				"Out(2, (4.0, 14.0))",
 				"In(3, (4.0, 12.0))",
 				"Out(5, (6.0, 10.0))",
 				"In(10, (6.0, 4.0))",
@@ -79,7 +79,7 @@ public class GridCellTest {
 			"In(2, (4.0, 14.0))",
 			"Out(3, (4.0, 12.0))",
 			"In(12, (4.0, 6.0))",
-			"Out(15, (4.0, 16.0))"
+			"Out(16, (4.0, 16.0))"
 		);
 	}
 
