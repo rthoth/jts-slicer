@@ -32,6 +32,10 @@ public class GridCellTest {
 		return new Guide.X(position, Slicer.DEFAULT_OFFSET, 0);
 	}
 
+	private Guide.Y y(double position) {
+		return new Guide.Y(position, Slicer.DEFAULT_OFFSET, 0);
+	}
+
 	private PSequence<Event> traverse(CoordinateSequence sequence, GridCell cell) {
 		if (sequence.size() > 0) {
 			cell.first(sequence.getCoordinate(0), 0);
@@ -47,7 +51,7 @@ public class GridCellTest {
 	}
 
 	@Test
-	public void middle_01() {
+	public void x_middle_01() {
 		CoordinateSequence sequence = GeometryHelper.sequenceOf(sequence01);
 		GridCell cell = newMiddle(x(4), x(6), sequence);
 
@@ -56,18 +60,18 @@ public class GridCellTest {
 
 		assertThat(events)
 			.containsOnly(
-				"In(1, (6.0, 14.0))",
-				"Out(2, (4.0, 14.0))",
+				"In(0, (6.0, 14.0))",
+				"Out(1, (4.0, 14.0))",
 				"In(3, (4.0, 12.0))",
-				"Out(5, (6.0, 10.0))",
-				"In(10, (6.0, 4.0))",
-				"Out(12, (4.0, 6.0))",
-				"In(16, (4.0, 16.0))",
-				"Out(16, (6.0, 14.0))");
+				"Out(4, (6.0, 10.0))",
+				"In(9, (6.0, 4.0))",
+				"Out(11, (4.0, 6.0))",
+				"In(15, (4.0, 16.0))"
+			);
 	}
 
 	@Test
-	public void lower_01() {
+	public void x_lower_01() {
 		CoordinateSequence sequence = GeometryHelper.sequenceOf(sequence01);
 		GridCell cell = newLower(x(4), sequence);
 		List<String> events = traverse(sequence, cell)
@@ -76,17 +80,43 @@ public class GridCellTest {
 			.collect(Collectors.toList());
 
 		assertThat(events).containsOnly(
-			"In(2, (4.0, 14.0))",
-			"Out(3, (4.0, 12.0))",
+			"In(1, (4.0, 14.0))",
+			"Out(2, (4.0, 12.0))",
 			"In(12, (4.0, 6.0))",
-			"Out(16, (4.0, 16.0))"
+			"Out(15, (4.0, 16.0))"
 		);
 	}
 
 	@Test
-	public void upper_01() {
+	public void x_upper_01() {
 		CoordinateSequence sequence = GeometryHelper.sequenceOf(sequence01);
 		List<String> events = traverse(sequence, newUpper(x(6), sequence))
+			.stream().map(Event::toString).collect(Collectors.toList());
+
+		assertThat(events).containsOnly(
+			"In(5, (6.0, 10.0))",
+			"Out(6, (6.0, 8.0))",
+			"In(7, (6.0, 6.0))",
+			"Out(9, (6.0, 4.0))"
+		);
+	}
+
+	@Test
+	public void y_lower_01() {
+		CoordinateSequence sequence = GeometryHelper.sequenceOf(sequence01);
+		List<String> events = traverse(sequence, newLower(y(4), sequence))
+			.stream().map(Event::toString).collect(Collectors.toList());
+
+		assertThat(events).containsOnly(
+			"In(13, (2.0, 4.0))",
+			"Out(13, (1.0, 4.0))"
+		);
+	}
+
+	@Test
+	public void y_middle_01() {
+		CoordinateSequence sequence = GeometryHelper.sequenceOf(sequence01);
+		List<String> events = traverse(sequence, newMiddle(y(4), y(14), sequence))
 			.stream().map(Event::toString).collect(Collectors.toList());
 
 		assertThat(events).containsOnly("");

@@ -10,102 +10,111 @@ import static com.github.rthoth.slicer.Location.*;
 
 public class GridCell {
 
-
 	private final Cell<?> cell;
 
 	private final LinkedList<Event> events = new LinkedList<>();
 	private final Event.Factory evtFactory;
-	private int lastPosition;
-	private Coordinate lastCoordinate;
+	private int previousPosition;
+	private Coordinate previousCoordinate;
 	private Location firstLocation;
-	private int lastIndex;
-	private Location lastLocation;
+	private int previousIndex;
+	private Location previousLocation;
+	private Event candidate = null;
 
 	public GridCell(Event.Factory evtFactory, Cell<?> cell) {
 		this.evtFactory = evtFactory;
 		this.cell = cell;
 	}
 
+	private void addCandidate() {
+		if (candidate != null) {
+			events.addLast(candidate);
+			candidate = null;
+		}
+	}
+
 	public void first(Coordinate coordinate, int index) {
 		events.clear();
 
-		lastCoordinate = coordinate;
-		lastIndex = index;
-		lastPosition = cell.positionOf(coordinate);
-		firstLocation = Location.of(lastPosition);
-		lastLocation = firstLocation;
+		previousCoordinate = coordinate;
+		previousIndex = index;
+		previousPosition = cell.positionOf(coordinate);
+		firstLocation = Location.of(previousPosition);
+		previousLocation = firstLocation;
 	}
 
 	public void check(Coordinate coordinate, int index) {
 		final int currentPosition = cell.positionOf(coordinate);
 		final Location currentLocation = Location.of(currentPosition);
 
-		if (currentPosition != lastPosition) {
+		if (currentPosition != previousPosition) {
 			if (firstLocation == Location.BORDER && currentLocation != Location.BORDER)
 				firstLocation = currentLocation;
 
 			check(coordinate, index, currentPosition, currentLocation);
-			lastPosition = currentPosition;
-			lastLocation = currentLocation;
-			lastIndex = index;
+			previousPosition = currentPosition;
+			previousLocation = currentLocation;
 		}
 
-		lastCoordinate = coordinate;
+		previousIndex = index;
+		previousCoordinate = coordinate;
 	}
 
 	private void check(Coordinate coordinate, int index, int position, Location location) {
-		final int product = lastPosition * position;
-		final Event last = events.peekLast();
-
-		switch (product) {
-			case -4: // cross: outside->outside
-				final Coordinate _1 = cell.intersection(lastCoordinate, coordinate, lastPosition);
-				final Coordinate _2 = cell.intersection(lastCoordinate, coordinate, position);
-
-				events.addLast(evtFactory.newIn(index, _1, lastPosition));
-				events.addLast(evtFactory.newOut(index, _2, position));
-
+		switch (previousPosition * position) {
+			case 0: // outside->inside, border->inside, inside->border, inside->outside
+				if (previousLocation == OUTSIDE) { // outside->inside
+					events.addLast(evtFactory.newIn(index, cell.intersection(previousCoordinate, coordinate, previousPosition), previousPosition));
+				} else if (location == OUTSIDE) { // inside->outside
+					events.addLast(evtFactory.newOut(previousIndex, cell.intersection(previousCoordinate, coordinate, position), position));
+				} else if (location == BORDER) { // inside->border
+					candidate = evtFactory.newOut(index, null, position);
+				} else { // border->inside
+					if (candidate == null || candidate.getIndex() != previousIndex) {
+						addCandidate();
+						events.addLast(evtFactory.newIn(previousIndex, null, previousPosition));
+					} else {
+						candidate = null;
+					}
+				}
 				break;
 
-			case 0: // outside->inside, border->inside, inside->outside, inside->border
-				if (lastLocation == OUTSIDE) {
-					events.addLast(evtFactory.newIn(index, cell.intersection(lastCoordinate, coordinate, lastPosition), position));
-				} else if (location == OUTSIDE) {
-					events.addLast(evtFactory.newOut(index, cell.intersection(lastCoordinate, coordinate, position), position));
-				} else if (lastLocation == BORDER) { // border -> inside
-					if (last instanceof Event.Out) {
-						events.removeLast();
-						if (last.getIndex() != index - 1) {
-							events.addLast(evtFactory.newOut(last.getIndex() + 1, last.getCoordinate(), lastPosition));
-							events.addLast(evtFactory.newIn(index, lastCoordinate, position));
-						}
-					} else {
-						events.addLast(evtFactory.newIn(index, lastCoordinate, lastPosition));
-					}
+			case -4: // cross: outside->outside
+				events.addLast(evtFactory.newIn(index, cell.intersection(previousCoordinate, coordinate, previousPosition), previousPosition));
+				events.addLast(evtFactory.newOut(index, cell.intersection(previousCoordinate, coordinate, position), position));
+				break;
+
+			case -1: // border->border
+				if (candidate instanceof Event.Out && candidate.getIndex() != previousIndex) {
+					candidate = null;
 				} else {
+					addCandidate();
+					events.addLast(evtFactory.newIn(previousIndex, null, previousPosition));
+				}
+
+				candidate = evtFactory.newOut(index, null, position);
+				break;
+
+			case -2: // cross: outside->border, border->outside
+				if (location == BORDER) { // outside->border
+					events.addLast(evtFactory.newIn(index, cell.intersection(previousCoordinate, coordinate, previousPosition), previousPosition));
+					candidate = evtFactory.newOut(index, null, position);
+				} else { // border->outside
+					if (candidate instanceof Event.Out && candidate.getIndex() != previousIndex) {
+						addCandidate();
+						events.addLast(evtFactory.newIn(previousIndex, null, previousPosition));
+					} else {
+						candidate = null;
+					}
 					events.addLast(evtFactory.newOut(index, null, position));
 				}
 				break;
 
-			case -1: // border->border is like a in->out
-				if ((last instanceof Event.Out) && last.getIndex() == index - 1)
-					events.removeLast();
-				else
-					events.addLast(evtFactory.newIn(index, lastCoordinate, lastPosition));
-
-				events.addLast(evtFactory.newOut(index, null, position));
-
-
-				break;
-
-			case 2: // border->outside, outside->border
-				if (location == OUTSIDE) {
-					if ((last instanceof Event.Out) && last.getLocation() == BORDER) {
-						events.removeLast();
-						events.addLast(evtFactory.newOut(last.getIndex() + 1, last.getCoordinate(), lastPosition));
-					}
+			case 2: // same side: outside->border, border->outside
+				if (location == OUTSIDE && candidate instanceof Event.Out) {
+					addCandidate();
 				}
-
+				break;
 		}
 	}
 
