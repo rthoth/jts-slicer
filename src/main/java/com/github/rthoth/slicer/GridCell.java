@@ -123,7 +123,7 @@ public class GridCell {
 	public PSequence<Event> last(Coordinate coordinate, int index, boolean closed) {
 		check(coordinate, index);
 
-		if (candidate instanceof Event.Out && closed) {
+		if (closed && candidate instanceof Event.Out) {
 			Event first = events.peekFirst();
 			if (first instanceof Event.In && first.getIndex() == firstIndex) {
 				events.removeFirst();
