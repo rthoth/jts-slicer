@@ -57,33 +57,33 @@ public class Grid {
 		this.yAxis = yAxis;
 	}
 
-	public <I> void traverse(CoordinateSequence sequence, Callback<I> callback, Cropper<I> cropper) {
+	public <I> void traverse(CoordinateSequence sequence, boolean closed, Callback<I> callback, Cropper<I> cropper) {
 		switch (order) {
 			case X_Y:
-				traverse(xAxis, yAxis, sequence, callback, cropper);
+				traverse(xAxis, yAxis, sequence, closed, callback, cropper);
 				break;
 			case Y_X:
-				traverse(yAxis, xAxis, sequence, callback, cropper);
+				traverse(yAxis, xAxis, sequence, closed, callback, cropper);
 				break;
 			case AUTOMATIC:
 				if (xAxis.size() >= yAxis.size())
-					traverse(xAxis, yAxis, sequence, callback, cropper);
+					traverse(xAxis, yAxis, sequence, closed, callback, cropper);
 				else
-					traverse(yAxis, xAxis, sequence, callback, cropper);
+					traverse(yAxis, xAxis, sequence, closed, callback, cropper);
 		}
 	}
 
 	private <I> void traverse(PSequence<? extends Cell<?>> _1, PSequence<? extends Cell<?>> _2,
-														CoordinateSequence sequence, Callback<I> callback, Cropper<I> cropper) {
+														CoordinateSequence sequence, boolean closed, Callback<I> callback, Cropper<I> cropper) {
 		if (sequence.size() > 1) {
-			Step1Result<I> result1 = step1(_1, sequence, callback, cropper);
+			Step1Result<I> result1 = step1(_1, sequence, closed, callback, cropper);
 		} else if (sequence.size() == 1) {
 		} else {
 		}
 	}
 
 	private <I> Step1Result<I> step1(PSequence<? extends Cell<?>> cells,
-																	 CoordinateSequence sequence, Callback<I> callback, Cropper<I> cropper) {
+																	 CoordinateSequence sequence, boolean closed, Callback<I> callback, Cropper<I> cropper) {
 
 		Event.Factory eventFactory = new Event.Factory(sequence);
 
@@ -107,7 +107,7 @@ public class Grid {
 		final Coordinate last = sequence.getCoordinate(lastIndex);
 		I info = callback.last(last, lastIndex);
 		PVector<PSequence<Event>> events = gridCells.stream()
-			.map(gridCell -> cropper.crop(gridCell.last(last, lastIndex), sequence, info))
+			.map(gridCell -> cropper.crop(gridCell.last(last, lastIndex, closed), sequence, info))
 			.collect(toVector());
 
 		return new Step1Result<>(info, events);

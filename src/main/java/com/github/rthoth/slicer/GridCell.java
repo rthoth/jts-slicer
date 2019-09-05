@@ -20,6 +20,7 @@ public class GridCell {
 	private int previousIndex;
 	private Location previousLocation;
 	private Event candidate = null;
+	private int firstIndex;
 
 	public GridCell(Event.Factory evtFactory, Cell<?> cell) {
 		this.evtFactory = evtFactory;
@@ -38,6 +39,7 @@ public class GridCell {
 
 		previousCoordinate = coordinate;
 		previousIndex = index;
+		firstIndex = index;
 		previousPosition = cell.positionOf(coordinate);
 		firstLocation = Location.of(previousPosition);
 		previousLocation = firstLocation;
@@ -118,8 +120,18 @@ public class GridCell {
 		}
 	}
 
-	public PSequence<Event> last(Coordinate coordinate, int index) {
+	public PSequence<Event> last(Coordinate coordinate, int index, boolean closed) {
 		check(coordinate, index);
+
+		if (candidate instanceof Event.Out && closed) {
+			Event first = events.peekFirst();
+			if (first instanceof Event.In && first.getIndex() == firstIndex) {
+				events.removeFirst();
+			} else {
+				events.addLast(candidate);
+			}
+		}
+
 		return TreePVector.from(events);
 	}
 }

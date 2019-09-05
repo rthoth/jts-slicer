@@ -10,6 +10,6 @@ public class PolygonSliceGrid extends SliceGrid<Polygon> {
 		PolygonCallback callback = new PolygonCallback();
 		PolygonCropper cropper = new PolygonCropper();
 
-		grid.traverse(polygon.getExteriorRing().getCoordinateSequence(), callback, cropper);
+		grid.traverse(polygon.getExteriorRing().getCoordinateSequence(), true, callback, cropper);
 	}
 }
