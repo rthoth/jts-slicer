@@ -31,9 +31,9 @@ public class Util {
 			@Override
 			public BinaryOperator<LinkedList<T>> combiner() {
 				return (l1, l2) -> {
-					LinkedList<T> l = new LinkedList<>(l1);
-					l.addAll(l2);
-					return l;
+					LinkedList<T> ret = new LinkedList<>(l1);
+					ret.addAll(l2);
+					return ret;
 				};
 			}
 

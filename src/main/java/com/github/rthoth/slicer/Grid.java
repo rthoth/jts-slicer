@@ -21,7 +21,9 @@ public class Grid {
 
 	public interface Cropper<I> {
 
-		PSequence<Event> crop(PSequence<Event> events, CoordinateSequence sequence, I info);
+		PSequence<Event> crop(PSequence<Event> events, I info, Guide<?> guide);
+
+		PSequence<Event> crop(PSequence<Event> events, I info, Guide<?> lower, Guide<?> upper);
 	}
 
 	private final PVector<Cell<Guide.X>> xAxis;
@@ -77,6 +79,7 @@ public class Grid {
 														CoordinateSequence sequence, boolean closed, Callback<I> callback, Cropper<I> cropper) {
 		if (sequence.size() > 1) {
 			Step1Result<I> result1 = step1(_1, sequence, closed, callback, cropper);
+
 		} else if (sequence.size() == 1) {
 		} else {
 		}
@@ -106,8 +109,9 @@ public class Grid {
 
 		final Coordinate last = sequence.getCoordinate(lastIndex);
 		I info = callback.last(last, lastIndex);
+
 		PVector<PSequence<Event>> events = gridCells.stream()
-			.map(gridCell -> cropper.crop(gridCell.last(last, lastIndex, closed), sequence, info))
+			.map(gridCell -> gridCell.last(last, lastIndex, closed, cropper, info))
 			.collect(toVector());
 
 		return new Step1Result<>(info, events);

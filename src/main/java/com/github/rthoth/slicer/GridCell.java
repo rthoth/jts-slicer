@@ -86,7 +86,7 @@ public class GridCell {
 				events.addLast(evtFactory.newOut(index, cell.intersection(previousCoordinate, coordinate, position), position));
 				break;
 
-			case -1: // border->border
+			case -1: // cross: border->border
 				if (candidate instanceof Event.Out && candidate.getIndex() != previousIndex) {
 					candidate = null;
 				} else {
@@ -120,7 +120,7 @@ public class GridCell {
 		}
 	}
 
-	public PSequence<Event> last(Coordinate coordinate, int index, boolean closed) {
+	public <I> PSequence<Event> last(Coordinate coordinate, int index, boolean closed, Grid.Cropper<I> cropper, I info) {
 		check(coordinate, index);
 
 		if (candidate instanceof Event.Out && closed) {
@@ -132,6 +132,6 @@ public class GridCell {
 			}
 		}
 
-		return TreePVector.from(events);
+		return cell.crop(TreePVector.from(events), cropper, info);
 	}
 }
