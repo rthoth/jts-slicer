@@ -120,10 +120,10 @@ public class GridCell {
 		}
 	}
 
-	public <I> PSequence<Event> last(Coordinate coordinate, int index, boolean closed, Grid.Cropper<I> cropper, I info) {
+	public PSequence<Event> last(Coordinate coordinate, int index, boolean closed) {
 		check(coordinate, index);
 
-		if (candidate instanceof Event.Out && closed) {
+		if (closed && candidate instanceof Event.Out) {
 			Event first = events.peekFirst();
 			if (first instanceof Event.In && first.getIndex() == firstIndex) {
 				events.removeFirst();
@@ -132,6 +132,6 @@ public class GridCell {
 			}
 		}
 
-		return cell.crop(TreePVector.from(events), cropper, info);
+		return TreePVector.from(events);
 	}
 }

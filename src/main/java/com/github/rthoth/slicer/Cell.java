@@ -9,8 +9,6 @@ public abstract class Cell<G extends Guide<?>> {
 
 	public abstract Coordinate intersection(Coordinate _1, Coordinate _2, int guide);
 
-	public abstract <I> PSequence<Event> crop(PSequence<Event> events, Grid.Cropper<I> cropper, I info);
-
 	public static class Lower<G extends Guide<?>> extends Cell<G> {
 
 		private final G upper;
@@ -37,11 +35,6 @@ public abstract class Cell<G extends Guide<?>> {
 				return upper.intersection(_1, _2);
 			else
 				throw new IllegalArgumentException();
-		}
-
-		@Override
-		public <I> PSequence<Event> crop(PSequence<Event> events, Grid.Cropper<I> cropper, I info) {
-			return cropper.crop(events, info, upper);
 		}
 	}
 
@@ -83,11 +76,6 @@ public abstract class Cell<G extends Guide<?>> {
 
 			throw new IllegalArgumentException(String.valueOf(guide));
 		}
-
-		@Override
-		public <I> PSequence<Event> crop(PSequence<Event> events, Grid.Cropper<I> cropper, I info) {
-			return cropper.crop(events, info, lower, upper);
-		}
 	}
 
 	public static class Upper<G extends Guide<?>> extends Cell<G> {
@@ -118,11 +106,6 @@ public abstract class Cell<G extends Guide<?>> {
 				return lower.intersection(_1, _2);
 			else
 				throw new IllegalArgumentException(String.valueOf(guide));
-		}
-
-		@Override
-		public <I> PSequence<Event> crop(PSequence<Event> events, Grid.Cropper<I> cropper, I info) {
-			return cropper.crop(events, info, lower);
 		}
 	}
 }

@@ -6,6 +6,8 @@ import org.pcollections.Empty;
 import org.pcollections.PSequence;
 import org.pcollections.PVector;
 
+import java.util.stream.StreamSupport;
+
 import static com.github.rthoth.slicer.Util.toVector;
 
 public class Grid {
@@ -20,10 +22,6 @@ public class Grid {
 	}
 
 	public interface Cropper<I> {
-
-		PSequence<Event> crop(PSequence<Event> events, I info, Guide<?> guide);
-
-		PSequence<Event> crop(PSequence<Event> events, I info, Guide<?> lower, Guide<?> upper);
 	}
 
 	private final PVector<Cell<Guide.X>> xAxis;
@@ -59,39 +57,44 @@ public class Grid {
 		this.yAxis = yAxis;
 	}
 
-	public <I> void traverse(CoordinateSequence sequence, boolean closed, Callback<I> callback, Cropper<I> cropper) {
+	public <I> Object traverse(Sequences sequences, Callback<I> callback, Cropper<I> cropper) {
 		switch (order) {
 			case X_Y:
-				traverse(xAxis, yAxis, sequence, closed, callback, cropper);
-				break;
+				return traverse(sequences, callback, cropper, xAxis, yAxis);
+
 			case Y_X:
-				traverse(yAxis, xAxis, sequence, closed, callback, cropper);
-				break;
+				return traverse(sequences, callback, cropper, yAxis, xAxis);
+
 			case AUTOMATIC:
 				if (xAxis.size() >= yAxis.size())
-					traverse(xAxis, yAxis, sequence, closed, callback, cropper);
+					return traverse(sequences, callback, cropper, xAxis, yAxis);
 				else
-					traverse(yAxis, xAxis, sequence, closed, callback, cropper);
+					return traverse(sequences, callback, cropper, yAxis, xAxis);
+
+			default:
+				throw new IllegalArgumentException();
 		}
 	}
 
-	private <I> void traverse(PSequence<? extends Cell<?>> _1, PSequence<? extends Cell<?>> _2,
-														CoordinateSequence sequence, boolean closed, Callback<I> callback, Cropper<I> cropper) {
-		if (sequence.size() > 1) {
-			Step1Result<I> result1 = step1(_1, sequence, closed, callback, cropper);
+	private <I> String traverse(Sequences sequences, Callback<I> callback, Cropper<I> cropper,
+															PSequence<? extends Cell> _1, PSequence<? extends Cell> _2) {
+		PVector<Result<I>> result1 = StreamSupport.stream(sequences.spliterator(), false)
+			.map(seq -> step1(seq, _1, callback, cropper))
+			.collect(toVector());
 
-		} else if (sequence.size() == 1) {
-		} else {
-		}
+		crop(result1, cropper);
+
+		return null;
 	}
 
-	private <I> Step1Result<I> step1(PSequence<? extends Cell<?>> cells,
-																	 CoordinateSequence sequence, boolean closed, Callback<I> callback, Cropper<I> cropper) {
+	private <I> Result<I> step1(Sequences.Seq seq, PSequence<? extends Cell> cells,
+															Callback<I> callback, Cropper<I> cropper) {
 
+		CoordinateSequence sequence = seq.getSequence();
 		Event.Factory eventFactory = new Event.Factory(sequence);
 
 		PVector<GridCell> gridCells = cells.stream()
-			.map(c -> new GridCell(eventFactory, c)).collect(toVector());
+			.map(cell -> new GridCell(eventFactory, cell)).collect(toVector());
 
 		Coordinate first = sequence.getCoordinate(0);
 		callback.first(first);
@@ -111,16 +114,26 @@ public class Grid {
 		I info = callback.last(last, lastIndex);
 
 		PVector<PSequence<Event>> events = gridCells.stream()
-			.map(gridCell -> gridCell.last(last, lastIndex, closed, cropper, info))
+			.map(gridCell -> gridCell.last(last, lastIndex, seq.isClosed()))
 			.collect(toVector());
 
-		return new Step1Result<>(info, events);
+		return new Result<>(info, events, seq);
 	}
 
-	public static class Step1Result<I> extends T2<I, PSequence<PSequence<Event>>> {
+	private <I> void crop(PSequence<Result<I>> results, Cropper<I> cropper) {
 
-		public Step1Result(I _1, PSequence<PSequence<Event>> _2) {
-			super(_1, _2);
+	}
+
+	public static class Result<I> {
+
+		private final I info;
+		private final PSequence<PSequence<Event>> events;
+		private final Sequences.Seq seq;
+
+		public Result(I info, PSequence<PSequence<Event>> events, Sequences.Seq seq) {
+			this.info = info;
+			this.events = events;
+			this.seq = seq;
 		}
 	}
 }
