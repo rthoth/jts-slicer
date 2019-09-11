@@ -1,17 +1,16 @@
 package com.github.rthoth.slicer;
 
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.CoordinateSequence;
 
 public abstract class Event {
 
-	protected final CoordinateSequence sequence;
+	protected final Sequences.Seq seq;
 	protected final int index;
 	protected final int position;
 	protected final Location location;
 
-	public Event(CoordinateSequence sequence, int index, int position) {
-		this.sequence = sequence;
+	public Event(Sequences.Seq seq, int index, int position) {
+		this.seq = seq;
 		this.index = index;
 		this.position = position;
 		this.location = Location.of(position);
@@ -31,9 +30,9 @@ public abstract class Event {
 
 	public static class Factory {
 
-		private final CoordinateSequence sequence;
+		private final Sequences.Seq sequence;
 
-		public Factory(CoordinateSequence sequence) {
+		public Factory(Sequences.Seq sequence) {
 			this.sequence = sequence;
 		}
 
@@ -54,14 +53,14 @@ public abstract class Event {
 
 		private final Coordinate coordinate;
 
-		public In(CoordinateSequence sequence, int index, Coordinate coordinate, int position) {
-			super(sequence, index, position);
+		public In(Sequences.Seq seq, int index, Coordinate coordinate, int position) {
+			super(seq, index, position);
 			this.coordinate = coordinate;
 		}
 
 		@Override
 		public Coordinate getCoordinate() {
-			return coordinate != null ? coordinate : sequence.getCoordinate(index);
+			return coordinate != null ? coordinate : seq.getCoordinate(index);
 		}
 
 		@Override
@@ -74,14 +73,14 @@ public abstract class Event {
 
 		private final Coordinate coordinate;
 
-		public Out(CoordinateSequence sequence, int index, Coordinate coordinate, int position) {
-			super(sequence, index, position);
+		public Out(Sequences.Seq seq, int index, Coordinate coordinate, int position) {
+			super(seq, index, position);
 			this.coordinate = coordinate;
 		}
 
 		@Override
 		public Coordinate getCoordinate() {
-			return coordinate != null ? coordinate : sequence.getCoordinate(index);
+			return coordinate != null ? coordinate : seq.getCoordinate(index);
 		}
 
 		@Override

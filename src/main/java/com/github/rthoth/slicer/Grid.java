@@ -1,7 +1,7 @@
 package com.github.rthoth.slicer;
 
+import com.github.rthoth.slicer.Sequences.Seq;
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.CoordinateSequence;
 import org.pcollections.Empty;
 import org.pcollections.PSequence;
 import org.pcollections.PVector;
@@ -57,7 +57,7 @@ public class Grid {
 		this.yAxis = yAxis;
 	}
 
-	public <I> Object traverse(Sequences sequences, Callback<I> callback, Cropper<I> cropper) {
+	public <I> Object traverse(Sequences<Seq> sequences, Callback<I> callback, Cropper<I> cropper) {
 		switch (order) {
 			case X_Y:
 				return traverse(sequences, callback, cropper, xAxis, yAxis);
@@ -76,64 +76,53 @@ public class Grid {
 		}
 	}
 
-	private <I> String traverse(Sequences sequences, Callback<I> callback, Cropper<I> cropper,
+	private <I> String traverse(Sequences<Seq> sequences, Callback<I> callback, Cropper<I> cropper,
 															PSequence<? extends Cell> _1, PSequence<? extends Cell> _2) {
-		PVector<Result<I>> result1 = StreamSupport.stream(sequences.spliterator(), false)
-			.map(seq -> step1(seq, _1, callback, cropper))
+
+		PVector<PSequence<Slice>> result1 = StreamSupport.stream(sequences.spliterator(), false)
+			.map(seq -> detectEvents(seq, _1, callback))
 			.collect(toVector());
 
-		crop(result1, cropper);
-
+		slice(result1, _1, cropper);
 		return null;
 	}
 
-	private <I> Result<I> step1(Sequences.Seq seq, PSequence<? extends Cell> cells,
-															Callback<I> callback, Cropper<I> cropper) {
+	private <I> PSequence<Slice> detectEvents(Seq seq, PSequence<? extends Cell> cells,
+																						Callback<I> callback) {
 
-		CoordinateSequence sequence = seq.getSequence();
-		Event.Factory eventFactory = new Event.Factory(sequence);
+		Event.Factory evtFactory = new Event.Factory(seq);
 
 		PVector<GridCell> gridCells = cells.stream()
-			.map(cell -> new GridCell(eventFactory, cell)).collect(toVector());
+			.map(cell -> new GridCell(evtFactory, cell)).collect(toVector());
 
-		Coordinate first = sequence.getCoordinate(0);
+		Coordinate first = seq.getCoordinate(0);
 		callback.first(first);
 
 		for (GridCell gridCell : gridCells)
 			gridCell.first(first, 0);
 
-		final int lastIndex = sequence.size() - 1;
+		final int lastIndex = seq.size() - 1;
 		for (int i = 1; i < lastIndex; i++) {
-			final Coordinate coordinate = sequence.getCoordinate(i);
+			final Coordinate coordinate = seq.getCoordinate(i);
 			callback.check(coordinate, i);
 			for (GridCell gridCell : gridCells)
 				gridCell.check(coordinate, i);
 		}
 
-		final Coordinate last = sequence.getCoordinate(lastIndex);
+		final Coordinate last = seq.getCoordinate(lastIndex);
 		I info = callback.last(last, lastIndex);
 
-		PVector<PSequence<Event>> events = gridCells.stream()
-			.map(gridCell -> gridCell.last(last, lastIndex, seq.isClosed()))
+		return gridCells.stream()
+			.map(gridCell -> new Slice<>(gridCell.last(last, lastIndex, seq.isClosed()), seq, info))
 			.collect(toVector());
-
-		return new Result<>(info, events, seq);
 	}
 
-	private <I> void crop(PSequence<Result<I>> results, Cropper<I> cropper) {
-
-	}
-
-	public static class Result<I> {
-
-		private final I info;
-		private final PSequence<PSequence<Event>> events;
-		private final Sequences.Seq seq;
-
-		public Result(I info, PSequence<PSequence<Event>> events, Sequences.Seq seq) {
-			this.info = info;
-			this.events = events;
-			this.seq = seq;
+	private <I> Sequences slice(PSequence<Result<I>> results, PSequence<? extends Cell> cells, Cropper<I> cropper) {
+		for (int i = 0, l = results.size(); i < l; i++) {
+			final Result<I> result = results.get(i);
+			cells.get(i).crop(result.events, result.seq, result.info, cropper);
 		}
+
+		return null;
 	}
 }

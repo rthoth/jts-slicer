@@ -1,61 +1,72 @@
 package com.github.rthoth.slicer;
 
+import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
-import org.locationtech.jts.geom.Polygon;
-import org.pcollections.Empty;
 import org.pcollections.PSequence;
-import org.pcollections.PVector;
-import org.pcollections.TreePVector;
 
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-public class Sequences implements Iterable<Sequences.Seq> {
+public class Sequences<S extends Sequences.Seq> implements Iterable<S> {
 
-	private final PSequence<Seq> seqs;
+	private final PSequence<S> seqs;
 
-	public Sequences(PSequence<Seq> seqs) {
+	public Sequences(PSequence<S> seqs) {
 		this.seqs = seqs;
 	}
 
 	@Override
-	public Iterator<Seq> iterator() {
+	public Iterator<S> iterator() {
 		return seqs.iterator();
 	}
 
 	@Override
-	public void forEach(Consumer<? super Seq> action) {
+	public void forEach(Consumer<? super S> action) {
 		seqs.forEach(action);
 	}
 
 	@Override
-	public Spliterator<Seq> spliterator() {
+	public Spliterator<S> spliterator() {
 		return seqs.spliterator();
 	}
 
-	public static class Seq {
+	public static abstract class Seq {
 
-		private final CoordinateSequence sequence;
-		private final int index;
 		private final boolean closed;
 
-		public Seq(CoordinateSequence sequence, int index, boolean closed) {
-			this.sequence = sequence;
-			this.index = index;
+		public Seq(boolean closed) {
 			this.closed = closed;
-		}
-
-		public CoordinateSequence getSequence() {
-			return sequence;
-		}
-
-		public int getIndex() {
-			return index;
 		}
 
 		public boolean isClosed() {
 			return closed;
+		}
+
+		public abstract Coordinate getCoordinate(int index);
+
+		public abstract int size();
+	}
+
+	public static class Wrapper extends Seq {
+
+		private final CoordinateSequence underlying;
+		private final int index;
+
+		public Wrapper(CoordinateSequence underlying, int index, boolean closed) {
+			super(closed);
+			this.underlying = underlying;
+			this.index = index;
+		}
+
+		@Override
+		public Coordinate getCoordinate(int index) {
+			return underlying.getCoordinate(index);
+		}
+
+		@Override
+		public int size() {
+			return underlying.size();
 		}
 	}
 }

@@ -1,5 +1,6 @@
 package com.github.rthoth.slicer;
 
+import com.github.rthoth.slicer.Sequences.Seq;
 import org.locationtech.jts.geom.Coordinate;
 import org.pcollections.PSequence;
 
@@ -8,6 +9,8 @@ public abstract class Cell<G extends Guide<?>> {
 	public abstract int positionOf(Coordinate coordinate);
 
 	public abstract Coordinate intersection(Coordinate _1, Coordinate _2, int guide);
+
+	public abstract PSequence<Sequences<Seq>> crop(PSequence<PSequence<Event>> events);
 
 	public static class Lower<G extends Guide<?>> extends Cell<G> {
 
