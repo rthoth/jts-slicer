@@ -1,11 +1,14 @@
 package com.github.rthoth.slicer;
 
-import com.github.rthoth.slicer.Sequences.Seq;
 import org.locationtech.jts.geom.Coordinate;
 import org.pcollections.Empty;
 import org.pcollections.PSequence;
 import org.pcollections.PVector;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.github.rthoth.slicer.Util.toVector;
@@ -79,16 +82,15 @@ public class Grid {
 	private <I> String traverse(Sequences<Seq> sequences, Callback<I> callback, Cropper<I> cropper,
 															PSequence<? extends Cell> _1, PSequence<? extends Cell> _2) {
 
-		PVector<PSequence<Slice>> result1 = StreamSupport.stream(sequences.spliterator(), false)
+		Optional<EventSet<I>> resultado = StreamSupport
+			.stream(sequences.spliterator(), false)
 			.map(seq -> detectEvents(seq, _1, callback))
-			.collect(toVector());
+			.reduce(EventSet::merge);
 
-		slice(result1, _1, cropper);
 		return null;
 	}
 
-	private <I> PSequence<Slice> detectEvents(Seq seq, PSequence<? extends Cell> cells,
-																						Callback<I> callback) {
+	private <I> EventSet<I> detectEvents(Seq seq, PSequence<? extends Cell> cells, Callback<I> callback) {
 
 		Event.Factory evtFactory = new Event.Factory(seq);
 
@@ -112,17 +114,10 @@ public class Grid {
 		final Coordinate last = seq.getCoordinate(lastIndex);
 		I info = callback.last(last, lastIndex);
 
-		return gridCells.stream()
-			.map(gridCell -> new Slice<>(gridCell.last(last, lastIndex, seq.isClosed()), seq, info))
+		PVector<PSequence<Event>> events = gridCells.stream()
+			.map(gridCell -> gridCell.last(last, lastIndex, seq.isClosed()))
 			.collect(toVector());
-	}
 
-	private <I> Sequences slice(PSequence<Result<I>> results, PSequence<? extends Cell> cells, Cropper<I> cropper) {
-		for (int i = 0, l = results.size(); i < l; i++) {
-			final Result<I> result = results.get(i);
-			cells.get(i).crop(result.events, result.seq, result.info, cropper);
-		}
-
-		return null;
+		return new EventSet<>(info, seq, events);
 	}
 }

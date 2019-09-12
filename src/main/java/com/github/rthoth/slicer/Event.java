@@ -4,12 +4,12 @@ import org.locationtech.jts.geom.Coordinate;
 
 public abstract class Event {
 
-	protected final Sequences.Seq seq;
+	protected final Seq seq;
 	protected final int index;
 	protected final int position;
 	protected final Location location;
 
-	public Event(Sequences.Seq seq, int index, int position) {
+	public Event(Seq seq, int index, int position) {
 		this.seq = seq;
 		this.index = index;
 		this.position = position;
@@ -30,9 +30,9 @@ public abstract class Event {
 
 	public static class Factory {
 
-		private final Sequences.Seq sequence;
+		private final Seq sequence;
 
-		public Factory(Sequences.Seq sequence) {
+		public Factory(Seq sequence) {
 			this.sequence = sequence;
 		}
 
@@ -53,7 +53,7 @@ public abstract class Event {
 
 		private final Coordinate coordinate;
 
-		public In(Sequences.Seq seq, int index, Coordinate coordinate, int position) {
+		public In(Seq seq, int index, Coordinate coordinate, int position) {
 			super(seq, index, position);
 			this.coordinate = coordinate;
 		}
@@ -73,7 +73,7 @@ public abstract class Event {
 
 		private final Coordinate coordinate;
 
-		public Out(Sequences.Seq seq, int index, Coordinate coordinate, int position) {
+		public Out(Seq seq, int index, Coordinate coordinate, int position) {
 			super(seq, index, position);
 			this.coordinate = coordinate;
 		}

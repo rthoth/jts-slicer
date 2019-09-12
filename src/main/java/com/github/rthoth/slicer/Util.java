@@ -44,7 +44,7 @@ public class Util {
 
 			@Override
 			public Set<Characteristics> characteristics() {
-				return Collections.singleton(Characteristics.CONCURRENT);
+				return Collections.emptySet();
 			}
 		};
 	}

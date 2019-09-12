@@ -27,6 +27,10 @@ public class GridCell {
 		this.cell = cell;
 	}
 
+	public Location getFirstLocation() {
+		return firstLocation;
+	}
+
 	private void addCandidate() {
 		if (candidate != null) {
 			events.addLast(candidate);
