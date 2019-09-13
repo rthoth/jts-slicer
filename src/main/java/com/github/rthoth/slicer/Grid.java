@@ -1,14 +1,12 @@
 package com.github.rthoth.slicer;
 
+import com.github.rthoth.slicer.SliceSet.Slice;
 import org.locationtech.jts.geom.Coordinate;
 import org.pcollections.Empty;
 import org.pcollections.PSequence;
 import org.pcollections.PVector;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.github.rthoth.slicer.Util.toVector;
@@ -82,15 +80,15 @@ public class Grid {
 	private <I> String traverse(Sequences<Seq> sequences, Callback<I> callback, Cropper<I> cropper,
 															PSequence<? extends Cell> _1, PSequence<? extends Cell> _2) {
 
-		Optional<EventSet<I>> resultado = StreamSupport
+		Optional<SliceSet<I>> resultado = StreamSupport
 			.stream(sequences.spliterator(), false)
 			.map(seq -> detectEvents(seq, _1, callback))
-			.reduce(EventSet::merge);
+			.reduce(SliceSet::merge);
 
 		return null;
 	}
 
-	private <I> EventSet<I> detectEvents(Seq seq, PSequence<? extends Cell> cells, Callback<I> callback) {
+	private <I> SliceSet<I> detectEvents(Seq seq, PSequence<? extends Cell> cells, Callback<I> callback) {
 
 		Event.Factory evtFactory = new Event.Factory(seq);
 
@@ -114,10 +112,10 @@ public class Grid {
 		final Coordinate last = seq.getCoordinate(lastIndex);
 		I info = callback.last(last, lastIndex);
 
-		PVector<PSequence<Event>> events = gridCells.stream()
-			.map(gridCell -> gridCell.last(last, lastIndex, seq.isClosed()))
+		PVector<Slice> slices = gridCells.stream()
+			.map(gridCell -> new Slice(gridCell.getFirstLocation(), gridCell.last(last, lastIndex, seq.isClosed())))
 			.collect(toVector());
 
-		return new EventSet<>(info, seq, events);
+		return new SliceSet<>(seq, info, slices);
 	}
 }
