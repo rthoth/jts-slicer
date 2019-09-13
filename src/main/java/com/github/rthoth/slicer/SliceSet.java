@@ -71,6 +71,14 @@ public class SliceSet<I> {
 		this(TreePVector.singleton(new Info<>(seq, info)), slices);
 	}
 
+	public PSequence<Info<I>> getInfos() {
+		return infos;
+	}
+
+	public PSequence<Slice> getSlices() {
+		return slices;
+	}
+
 	public SliceSet<I> merge(SliceSet<I> other) {
 		return new SliceSet<>(infos.plusAll(other.infos), mergeSlices(other.slices));
 	}
@@ -80,7 +88,7 @@ public class SliceSet<I> {
 		if (slices.size() == other.size()) {
 			for (int i = 0; i < slices.size(); i++) {
 				Slice _1 = slices.get(i);
-				Slice _2 = slices.get(i);
+				Slice _2 = other.get(i);
 				list.addLast(_1.merge(_2));
 			}
 

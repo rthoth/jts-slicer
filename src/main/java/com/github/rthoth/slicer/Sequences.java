@@ -2,30 +2,17 @@ package com.github.rthoth.slicer;
 
 import org.pcollections.PSequence;
 
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.function.Consumer;
+import java.util.stream.Stream;
 
-public class Sequences<S extends Seq> implements Iterable<S> {
+public class Sequences {
 
-	private final PSequence<S> seqs;
+	private final PSequence<Seq> seqs;
 
-	public Sequences(PSequence<S> seqs) {
+	public Sequences(PSequence<Seq> seqs) {
 		this.seqs = seqs;
 	}
 
-	@Override
-	public Iterator<S> iterator() {
-		return seqs.iterator();
-	}
-
-	@Override
-	public void forEach(Consumer<? super S> action) {
-		seqs.forEach(action);
-	}
-
-	@Override
-	public Spliterator<S> spliterator() {
-		return seqs.spliterator();
+	public Stream<Seq> stream() {
+		return seqs.stream();
 	}
 }

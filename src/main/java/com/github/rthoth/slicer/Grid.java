@@ -7,7 +7,7 @@ import org.pcollections.PSequence;
 import org.pcollections.PVector;
 
 import java.util.Optional;
-import java.util.stream.StreamSupport;
+import java.util.stream.IntStream;
 
 import static com.github.rthoth.slicer.Util.toVector;
 
@@ -23,6 +23,10 @@ public class Grid {
 	}
 
 	public interface Cropper<I> {
+
+		Sequences crop(Slice slice, SliceSet<I> sliceSet, Guide<?> guide);
+
+		Sequences crop(Slice slice, SliceSet<I> sliceSet, Guide<?> lower, Guide<?> upper);
 	}
 
 	private final PVector<Cell<Guide.X>> xAxis;
@@ -58,7 +62,7 @@ public class Grid {
 		this.yAxis = yAxis;
 	}
 
-	public <I> Object traverse(Sequences<Seq> sequences, Callback<I> callback, Cropper<I> cropper) {
+	public <I> Object traverse(Sequences sequences, Callback<I> callback, Cropper<I> cropper) {
 		switch (order) {
 			case X_Y:
 				return traverse(sequences, callback, cropper, xAxis, yAxis);
@@ -77,18 +81,35 @@ public class Grid {
 		}
 	}
 
-	private <I> String traverse(Sequences<Seq> sequences, Callback<I> callback, Cropper<I> cropper,
+	private <I> String traverse(Sequences sequences, Callback<I> callback, Cropper<I> cropper,
 															PSequence<? extends Cell> _1, PSequence<? extends Cell> _2) {
 
-		Optional<SliceSet<I>> resultado = StreamSupport
-			.stream(sequences.spliterator(), false)
-			.map(seq -> detectEvents(seq, _1, callback))
+		Optional<SliceSet<I>> opt = sequences.stream()
+			.map(seq -> computeSliceSet(seq, _1, callback))
 			.reduce(SliceSet::merge);
+
+		if (opt.isPresent()) {
+			SliceSet<I> sliceSet = opt.get();
+			PSequence<Slice> slices = sliceSet.getSlices();
+			if (slices.size() == _1.size()) {
+				PSequence<Sequences> newSequences = IntStream.range(0, _1.size())
+					.mapToObj(i -> _1.get(i).crop(slices.get(i), sliceSet, cropper))
+					.collect(toVector());
+
+				return null;
+
+			} else {
+				throw new IllegalStateException();
+			}
+
+		} else {
+
+		}
 
 		return null;
 	}
 
-	private <I> SliceSet<I> detectEvents(Seq seq, PSequence<? extends Cell> cells, Callback<I> callback) {
+	private <I> SliceSet<I> computeSliceSet(Seq seq, PSequence<? extends Cell> cells, Callback<I> callback) {
 
 		Event.Factory evtFactory = new Event.Factory(seq);
 
@@ -102,6 +123,7 @@ public class Grid {
 			gridCell.first(first, 0);
 
 		final int lastIndex = seq.size() - 1;
+
 		for (int i = 1; i < lastIndex; i++) {
 			final Coordinate coordinate = seq.getCoordinate(i);
 			callback.check(coordinate, i);

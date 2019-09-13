@@ -22,6 +22,7 @@ public class PolygonCallback implements Grid.Callback<PolygonCallback.Orientatio
 
 	@Override
 	public void first(Coordinate coordinate) {
+		area = 0D;
 		previousCoordinate = coordinate;
 	}
 

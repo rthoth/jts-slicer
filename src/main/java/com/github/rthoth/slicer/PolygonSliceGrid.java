@@ -7,7 +7,7 @@ import org.pcollections.PVector;
 
 public class PolygonSliceGrid extends SliceGrid<Polygon> {
 
-	public static Sequences<Seq> sequencesOf(Polygon polygon) {
+	public static Sequences sequencesOf(Polygon polygon) {
 		PVector<Seq> seqs = Empty.vector();
 		seqs = seqs.plus(new Seq.Wrapper(polygon.getExteriorRing().getCoordinateSequence(), 0, true));
 
@@ -15,7 +15,7 @@ public class PolygonSliceGrid extends SliceGrid<Polygon> {
 			seqs = seqs.plus(new Seq.Wrapper(polygon.getInteriorRingN(i).getCoordinateSequence(), j, true));
 		}
 
-		return new Sequences<>(seqs);
+		return new Sequences(seqs);
 	}
 
 	public PolygonSliceGrid(Polygon polygon, PSequence<Guide.X> x, PSequence<Guide.Y> y, Order order) {

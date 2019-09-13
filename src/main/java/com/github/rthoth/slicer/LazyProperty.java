@@ -1,7 +1,5 @@
 package com.github.rthoth.slicer;
 
-import com.sun.org.apache.bcel.internal.generic.ATHROW;
-
 import java.util.function.Supplier;
 
 public class LazyProperty<T> {

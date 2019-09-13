@@ -1,5 +1,7 @@
 package com.github.rthoth.slicer;
 
+import com.github.rthoth.slicer.Grid.Cropper;
+import com.github.rthoth.slicer.SliceSet.Slice;
 import org.locationtech.jts.geom.Coordinate;
 
 @SuppressWarnings("unused")
@@ -9,12 +11,19 @@ public abstract class Cell<G extends Guide<?>> {
 
 	public abstract Coordinate intersection(Coordinate _1, Coordinate _2, int guide);
 
+	public abstract <I> Sequences crop(Slice slice, SliceSet<I> sliceSet, Cropper<I> cropper);
+
 	public static class Lower<G extends Guide<?>> extends Cell<G> {
 
 		private final G upper;
 
 		public Lower(G upper) {
 			this.upper = upper;
+		}
+
+		@Override
+		public <I> Sequences crop(Slice slice, SliceSet<I> sliceSet, Cropper<I> cropper) {
+			return cropper.crop(slice, sliceSet, upper);
 		}
 
 		@Override
@@ -46,6 +55,11 @@ public abstract class Cell<G extends Guide<?>> {
 		public Middle(G lower, G upper) {
 			this.lower = lower;
 			this.upper = upper;
+		}
+
+		@Override
+		public <I> Sequences crop(Slice slice, SliceSet<I> sliceSet, Cropper<I> cropper) {
+			return cropper.crop(slice, sliceSet, lower, upper);
 		}
 
 		@Override
@@ -84,6 +98,11 @@ public abstract class Cell<G extends Guide<?>> {
 
 		public Upper(G lower) {
 			this.lower = lower;
+		}
+
+		@Override
+		public <I> Sequences crop(Slice slice, SliceSet<I> sliceSet, Cropper<I> cropper) {
+			return cropper.crop(slice, sliceSet, lower);
 		}
 
 		@Override
