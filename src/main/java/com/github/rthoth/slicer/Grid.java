@@ -6,9 +6,6 @@ import org.pcollections.Empty;
 import org.pcollections.PSequence;
 import org.pcollections.PVector;
 
-import java.util.Optional;
-import java.util.stream.IntStream;
-
 import static com.github.rthoth.slicer.Util.toVector;
 
 public class Grid {
@@ -24,9 +21,9 @@ public class Grid {
 
 	public interface Cropper<I> {
 
-		Sequences crop(Slice slice, SliceSet<I> sliceSet, Guide<?> guide);
+		SequenceSet crop(Slice slice, SliceSet<I> sliceSet, Guide<?> guide);
 
-		Sequences crop(Slice slice, SliceSet<I> sliceSet, Guide<?> lower, Guide<?> upper);
+		SequenceSet crop(Slice slice, SliceSet<I> sliceSet, Guide<?> lower, Guide<?> upper);
 	}
 
 	private final PVector<Cell<Guide.X>> xAxis;
@@ -62,45 +59,32 @@ public class Grid {
 		this.yAxis = yAxis;
 	}
 
-	public <I> Object traverse(Sequences sequences, Callback<I> callback, Cropper<I> cropper) {
+	public <I> Object traverse(SequenceSet sequenceSet, Callback<I> callback, Cropper<I> cropper) {
 		switch (order) {
 			case X_Y:
-				return traverse(sequences, callback, cropper, xAxis, yAxis);
+				return traverse(sequenceSet, callback, cropper, xAxis, yAxis);
 
 			case Y_X:
-				return traverse(sequences, callback, cropper, yAxis, xAxis);
+				return traverse(sequenceSet, callback, cropper, yAxis, xAxis);
 
 			case AUTOMATIC:
 				if (xAxis.size() >= yAxis.size())
-					return traverse(sequences, callback, cropper, xAxis, yAxis);
+					return traverse(sequenceSet, callback, cropper, xAxis, yAxis);
 				else
-					return traverse(sequences, callback, cropper, yAxis, xAxis);
+					return traverse(sequenceSet, callback, cropper, yAxis, xAxis);
 
 			default:
 				throw new IllegalArgumentException();
 		}
 	}
 
-	private <I> String traverse(Sequences sequences, Callback<I> callback, Cropper<I> cropper,
+	private <I> String traverse(SequenceSet sequenceSet, Callback<I> callback, Cropper<I> cropper,
 															PSequence<? extends Cell> _1, PSequence<? extends Cell> _2) {
-
-		Optional<SliceSet<I>> opt = sequences.stream()
-			.map(seq -> computeSliceSet(seq, _1, callback))
-			.reduce(SliceSet::merge);
-
-		if (opt.isPresent()) {
-			SliceSet<I> sliceSet = opt.get();
-			PSequence<Slice> slices = sliceSet.getSlices();
-			if (slices.size() == _1.size()) {
-				PSequence<Sequences> newSequences = IntStream.range(0, _1.size())
-					.mapToObj(i -> _1.get(i).crop(slices.get(i), sliceSet, cropper))
-					.collect(toVector());
-
-				return null;
-
-			} else {
-				throw new IllegalStateException();
-			}
+		if (!_1.isEmpty()) {
+			SliceSet<I> sliceSet = sequenceSet.stream()
+				.map(seq -> computeSliceSet(seq, _1, callback))
+				.reduce(SliceSet::merge).get();
+		} else if (!_2.isEmpty()) {
 
 		} else {
 

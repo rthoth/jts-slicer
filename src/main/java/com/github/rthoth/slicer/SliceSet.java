@@ -9,46 +9,6 @@ import java.util.LinkedList;
 
 public class SliceSet<I> {
 
-	public static class Info<I> {
-
-		private final Seq seq;
-		private final I info;
-
-		public Info(Seq seq, I info) {
-			this.seq = seq;
-			this.info = info;
-		}
-
-		public I getInfo() {
-			return info;
-		}
-
-		public Seq getSeq() {
-			return seq;
-		}
-
-	}
-
-	public static class Slice {
-
-		private final PSequence<PSequence<Event>> events;
-		private final PSequence<Location> firstLocations;
-
-		public Slice(Location firstLocations, PSequence<Event> events) {
-			this(TreePVector.singleton(events), TreePVector.singleton(firstLocations));
-		}
-
-		public Slice(PSequence<PSequence<Event>> events, PSequence<Location> firstLocations) {
-			assert events.size() == firstLocations.size();
-			this.events = events;
-			this.firstLocations = firstLocations;
-		}
-
-		public Slice merge(Slice other) {
-			return new Slice(events.plusAll(other.events), firstLocations.plusAll(other.firstLocations));
-		}
-	}
-
 	private PSequence<Info<I>> infos;
 	private final PSequence<Slice> slices;
 
@@ -84,16 +44,60 @@ public class SliceSet<I> {
 	}
 
 	private PSequence<Slice> mergeSlices(PSequence<Slice> other) {
-		LinkedList<Slice> list = new LinkedList<>();
+		PSequence<Slice> sequence = Empty.vector();
+
 		if (slices.size() == other.size()) {
 			for (int i = 0; i < slices.size(); i++) {
 				Slice _1 = slices.get(i);
 				Slice _2 = other.get(i);
-				list.addLast(_1.merge(_2));
+				sequence = sequence.plus(_1.merge(_2));
 			}
 
-			return TreePVector.from(list);
+			return sequence;
 		} else
 			throw new IllegalArgumentException();
+	}
+
+	public static class Slice {
+
+		private final PSequence<PSequence<Event>> events;
+
+		private final PSequence<Location> firstLocations;
+
+		public Slice(Location firstLocations, PSequence<Event> events) {
+			this(TreePVector.singleton(events), TreePVector.singleton(firstLocations));
+		}
+
+		public Slice(PSequence<PSequence<Event>> events, PSequence<Location> firstLocations) {
+			assert events.size() == firstLocations.size();
+			this.events = events;
+			this.firstLocations = firstLocations;
+		}
+
+		public Slice merge(Slice other) {
+			return new Slice(events.plusAll(other.events), firstLocations.plusAll(other.firstLocations));
+		}
+
+	}
+
+	public static class Info<I> {
+
+
+		private final Seq seq;
+		private final I info;
+
+		public Info(Seq seq, I info) {
+			this.seq = seq;
+			this.info = info;
+		}
+
+		public I getInfo() {
+			return info;
+		}
+
+		public Seq getSeq() {
+			return seq;
+		}
+
 	}
 }
