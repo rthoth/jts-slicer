@@ -58,6 +58,10 @@ public class SliceSet<I> {
 			throw new IllegalArgumentException();
 	}
 
+	public Slice getSlice(int index) {
+		return slices.get(index);
+	}
+
 	public static class Slice {
 
 		private final PSequence<PSequence<Event>> events;
@@ -72,6 +76,14 @@ public class SliceSet<I> {
 			assert events.size() == firstLocations.size();
 			this.events = events;
 			this.firstLocations = firstLocations;
+		}
+
+		public PSequence<PSequence<Event>> getEvents() {
+			return events;
+		}
+
+		public PSequence<Location> getFirstLocations() {
+			return firstLocations;
 		}
 
 		public Slice merge(Slice other) {

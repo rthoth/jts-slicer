@@ -4,7 +4,11 @@ import com.github.rthoth.slicer.SliceSet.Slice;
 import org.locationtech.jts.geom.Coordinate;
 import org.pcollections.Empty;
 import org.pcollections.PSequence;
+import org.pcollections.PSet;
 import org.pcollections.PVector;
+
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.github.rthoth.slicer.Util.toVector;
 
@@ -21,9 +25,9 @@ public class Grid {
 
 	public interface Cropper<I> {
 
-		SequenceSet crop(Slice slice, SliceSet<I> sliceSet, Guide<?> guide);
+		PSet<SequenceSet> crop(Slice slice, SliceSet<I> sliceSet, Guide<?> guide);
 
-		SequenceSet crop(Slice slice, SliceSet<I> sliceSet, Guide<?> lower, Guide<?> upper);
+		PSet<SequenceSet> crop(Slice slice, SliceSet<I> sliceSet, Guide<?> lower, Guide<?> upper);
 	}
 
 	private final PVector<Cell<Guide.X>> xAxis;
@@ -78,12 +82,20 @@ public class Grid {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private <I> String traverse(SequenceSet sequenceSet, Callback<I> callback, Cropper<I> cropper,
 															PSequence<? extends Cell> _1, PSequence<? extends Cell> _2) {
 		if (!_1.isEmpty()) {
 			SliceSet<I> sliceSet = sequenceSet.stream()
 				.map(seq -> computeSliceSet(seq, _1, callback))
 				.reduce(SliceSet::merge).get();
+
+			IntStream.range(0, _1.size())
+				.<PSet<SequenceSet>>mapToObj(i -> _1.get(i).crop(sliceSet.getSlice(i), sliceSet, cropper))
+				.flatMap(pset -> {
+					return traverse(pset, callback, cropper, _2);
+				});
+
 		} else if (!_2.isEmpty()) {
 
 		} else {
@@ -92,6 +104,8 @@ public class Grid {
 
 		return null;
 	}
+
+	private Stream<>
 
 	private <I> SliceSet<I> computeSliceSet(Seq seq, PSequence<? extends Cell> cells, Callback<I> callback) {
 
